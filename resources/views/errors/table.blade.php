@@ -35,7 +35,7 @@
                     @endauth
                 </div>
             @endif
-            <h1>Welcome to startpage</h1>
+            <h1>{{ "$code. $error"}}</h1>
         </div>
     </body>
 </html>

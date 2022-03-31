@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TableController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,3 +18,6 @@ Route::get('/', function () {
     $test = 'some test value';
     return view('welcome');
 });
+
+Route::get('/{table}',[TableController::class, 'index'])->middleware(['validation']);
+
