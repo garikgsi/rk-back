@@ -11,12 +11,12 @@ class TableException extends Exception
 {
     public function render($request) {
         if ($request->expectsJson()) {
-            return response()->json([
-                'is_error' => true,
+            return response()->formatApi([
                 'error' => $this->getMessage()
-            ], $this->getCode);
+            ], $this->getCode());
+
         } else {
-            return response()->view('errors.table',['error' => $this->getMessage(), 'code'=>$this->getCode()],$this->getCode());
+            return response()->view('errors.table',['error' => $this->getMessage(), 'code'=>$this->getCode()],(int)$this->getCode());
         }
     }
 }

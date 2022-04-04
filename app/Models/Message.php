@@ -12,4 +12,6 @@ class Message extends Model implements TableInterface
 {
     use HasFactory, SoftDeletes, TableTrait ;
 
+    // protected $title = 'Сообщения';
+
 }

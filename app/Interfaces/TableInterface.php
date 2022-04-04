@@ -14,5 +14,11 @@ interface TableInterface {
      */
     public function table():string;
 
+    /**
+     * title of table
+     *
+     * @return string
+     */
+    public function title(): string;
 
 }

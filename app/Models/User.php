@@ -11,9 +11,12 @@ use Laravel\Sanctum\HasApiTokens;
 use App\Interfaces\TableInterface;
 use App\Traits\TableTrait;
 
-class User extends Authenticatable implements TableInterface
+class User extends Authenticatable implements TableInterface, MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable, TableTrait;
+    use HasApiTokens, HasFactory, Notifiable, TableTrait, HasApiTokens;
+
+
+    protected $title = 'Пользователи';
 
     /**
      * The attributes that are mass assignable.
