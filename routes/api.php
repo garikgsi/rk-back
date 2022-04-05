@@ -29,23 +29,24 @@ use Illuminate\Validation\ValidationException;
 
 //     return ['token' => $token->plainTextToken];
 // });
-// Route::post('/sanctum/token', function (Request $request) {
-//     $request->validate([
-//         'email' => 'required|email',
-//         'password' => 'required',
-//         'device_name' => 'required',
-//     ]);
 
-//     $user = User::where('email', $request->email)->first();
+Route::post('/token', function (Request $request) {
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+        'device_name' => 'required',
+    ]);
 
-//     if (! $user || ! Hash::check($request->password, $user->password)) {
-//         throw ValidationException::withMessages([
-//             'email' => ['The provided credentials are incorrect.'],
-//         ]);
-//     }
+    $user = User::where('email', $request->email)->first();
 
-//     return $user->createToken($request->device_name)->plainTextToken;
-// });
+    if (! $user || ! Hash::check($request->password, $user->password)) {
+        throw ValidationException::withMessages([
+            'email' => ['The provided credentials are incorrect.'],
+        ]);
+    }
+
+    return $user->createToken($request->device_name)->plainTextToken;
+});
 
 
 Route::prefix('v1')
