@@ -13,7 +13,7 @@ use App\Traits\TableTrait;
 
 class User extends Authenticatable implements TableInterface, MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable, TableTrait, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable, TableTrait;
 
 
     protected $title = 'Пользователи';

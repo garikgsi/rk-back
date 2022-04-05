@@ -20,39 +20,46 @@ use Illuminate\Validation\ValidationException;
 |
 */
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-
-// Route::post('/tokens/create', function (Request $request) {
-//     $token = $request->user()->createToken($request->token_name);
-
-//     return ['token' => $token->plainTextToken];
-// });
-
-Route::post('/token', function (Request $request) {
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-        'device_name' => 'required',
-    ]);
-
-    $user = User::where('email', $request->email)->first();
-
-    if (! $user || ! Hash::check($request->password, $user->password)) {
-        throw ValidationException::withMessages([
-            'email' => ['The provided credentials are incorrect.'],
-        ]);
-    }
-
-    return $user->createToken($request->device_name)->plainTextToken;
-});
-
-
 Route::prefix('v1')
-    // ->middleware(['auth','validation'])
-    ->middleware(['validation'])
-    ->group(function () {
-        Route::get('/{table}',[TableController::class,'index']);
-        Route::get('/{table}/{id}',[TableController::class,'show']);
-});
+    ->group(function(){
+        /**
+         * tokens api
+         */
+        Route::prefix('auth')
+        ->group(function(){
+            Route::middleware('auth:sanctum')->get('user', function (Request $request) {
+                return $request->user();
+            });
+            Route::middleware('auth:sanctum')->post('/tokens/create', function (Request $request) {
+                $token = $request->user()->createToken($request->has('token_name') ? $request->token_name : 'simple token');
+
+                return ['token' => $token->plainTextToken];
+            });
+            Route::post('/token', function (Request $request) {
+                $request->validate([
+                    'email' => 'required|email',
+                    'password' => 'required',
+                    'device_name' => 'required',
+                ]);
+
+                $user = User::where('email', $request->email)->first();
+
+                if (! $user || ! Hash::check($request->password, $user->password)) {
+                    throw ValidationException::withMessages([
+                        'email' => ['The provided credentials are incorrect.'],
+                    ]);
+                }
+
+                return $user->createToken($request->device_name)->plainTextToken;
+            });
+        });
+        /**
+         * basic api
+         */
+        Route::middleware(['auth:sanctum','validation'])
+        ->group(function () {
+            Route::get('/{table}',[TableController::class,'index']);
+            Route::get('/{table}/{id}',[TableController::class,'show']);
+        });
+    })
+;
