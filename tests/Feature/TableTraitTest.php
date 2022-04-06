@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Models\User;
 use App\Models\Message;
+use App\Models\TestModel;
 
 class TableTraitTest extends TestCase
 {
@@ -31,4 +32,16 @@ class TableTraitTest extends TestCase
         $message = new Message();
         $this->assertSame($message->title(),'message');
     }
+
+    /**
+     * test return empty rules where prop $reles not set
+     *
+     * @return void
+     */
+    public function test_empty_rules() {
+        $testModel = new TestModel();
+        $this->assertSame([],$testModel->validationRules());
+        $this->assertSame([],$testModel->validationMessages());
+    }
+
 }

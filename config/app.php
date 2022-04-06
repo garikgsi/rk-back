@@ -82,7 +82,7 @@ return [
     |
     */
 
-    'locale' => 'en',
+    'locale' => 'ru',
 
     /*
     |--------------------------------------------------------------------------
@@ -108,7 +108,7 @@ return [
     |
     */
 
-    'faker_locale' => 'en_US',
+    'faker_locale' => 'ru_RU',
 
     /*
     |--------------------------------------------------------------------------
@@ -176,7 +176,8 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-        App\Providers\TableProvider::class
+        App\Providers\TableProvider::class,
+        App\Providers\TableModelProvider::class,
 
     ],
 
@@ -192,7 +193,8 @@ return [
     */
 
     'aliases' => Facade::defaultAliases()->merge([
-        'Table' => App\Facades\Table::class,
+        'table' => App\Facades\Table::class,
+        'tableModel' => App\Facades\TableModel::class,
     ])->toArray(),
 
 ];

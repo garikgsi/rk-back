@@ -70,4 +70,10 @@ class TableController extends Controller
             'data' => $this->repository->find($table,(int)$id)
         ]);
     }
+
+    public function update(Request $request, string $table, $id): Response {
+        return response()->formatApi([
+            'data' => $this->repository->update($request, $table, (int)$id)
+        ]);
+    }
 }

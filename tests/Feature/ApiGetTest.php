@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\TestCase;
 use App\Models\User;
+use Illuminate\Testing\TestResponse;
 
 class ApiGetTest extends TestCase
 {
@@ -89,6 +90,16 @@ class ApiGetTest extends TestCase
     //     $response->assertStatus(403);
     // }
 
+    public function test_not_implemented_model() {
+        $url = "tests";
+        $response = $this->request($url);
+        $response->assertStatus(421)
+            ->assertJson(function (AssertableJson $json) {
+                $json->where('error', "Модель не может реализовать необходимые методы")
+                    ->where('is_error', true);
+            });
+    }
+
     /**
      * return admin user for request
      *
@@ -100,7 +111,13 @@ class ApiGetTest extends TestCase
     }
 
 
-    protected function request($url)
+    /**
+     * request get
+     *
+     * @param  string $url
+     * @return TestResponse
+     */
+    protected function request($url):TestResponse
     {
         return $this->actingAs($this->adminUser())->getJson("/api/v1/$url");
     }

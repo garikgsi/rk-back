@@ -7,6 +7,7 @@ use App\Interfaces\TableInterface;
 use Exception;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -103,8 +104,9 @@ class TableRepositoryService {
      *
      * @param  string $table
      * @param  int $id
+     * @return TableInterface
      */
-    public function find(string $table, int $id)
+    public function find(string $table, int $id): TableInterface
     {
         $this->checks();
         try {
@@ -119,6 +121,42 @@ class TableRepositoryService {
     }
 
     /**
+     * update row identified by $id
+     *
+     * @param  Illuminate\Http\Reques $request
+     * @param  string $table
+     * @param  int $id
+     * @return TableInterface
+     */
+    public function update(Request $request, string $table, int $id): TableInterface
+    {
+        $this->checks();
+
+        $rules = $this->model->validationRules('update');
+        // for patch request validate only requested fields
+        if (strtolower($request->method())=='patch') {
+            $newRules = [];
+            foreach($rules as $field=>$rule) {
+                if ($request->has($field)) $newRules[$field] = $rule;
+            }
+            $rules = $newRules;
+        }
+        $validator = Validator::make($request->input(),
+            $rules,
+            $this->model->validationMessages('update'),
+            $this->model->validationNames()
+        );
+        if ($validator->fails()) {
+            $formattedError = implode(' ',$validator->errors()->all());
+            throw new TableException($formattedError, 422);
+        } else {
+            $row = $this->find($table, $id);
+            $row->fill($validator->validated())->save();
+            return $row;
+        }
+    }
+
+    /**
      * check if repository is initialized and classes implemented such interfaces
      *
      * @return void
@@ -127,6 +165,10 @@ class TableRepositoryService {
     {
         if ($this->model==null || $this->table=='') {
             throw new TableException("Репозиторий не идентифицирован", 421);
+        }
+        $modelInterfaces = class_implements($this->model);
+        if (!isset($modelInterfaces['App\Interfaces\TableInterface'])) {
+            throw new TableException("Модель не может реализовать необходимые методы", 421);
         }
     }
 }
