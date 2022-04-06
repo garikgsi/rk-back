@@ -56,10 +56,11 @@ Route::prefix('v1')
         /**
          * basic api
          */
-        Route::middleware(['auth:sanctum','validation'])
-        // Route::middleware(['validation'])
+        // Route::middleware(['auth:sanctum','validation'])
+        Route::middleware(['validation'])
         ->group(function () {
             Route::get('/{table}',[TableController::class,'index']);
+            Route::post('/{table}/{id?}',[TableController::class,'store']);
             Route::get('/{table}/{id}',[TableController::class,'show']);
             Route::put('/{table}/{id}',[TableController::class,'update']);
             Route::patch('/{table}/{id}',[TableController::class,'update']);

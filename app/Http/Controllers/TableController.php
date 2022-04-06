@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-// use App\Services\TableRepositoryService;
 use Illuminate\Http\Request;
 use App\Facades\Table;
 use Illuminate\Http\Response;
@@ -30,12 +29,6 @@ class TableController extends Controller
         $this->repository = Table::use($request->table);
     }
 
-    // /**
-    //  * show rows list
-    //  *
-    //  * @param  mixed $request
-    //  */
-    // public function index(Request $request) {
     /**
      * show rows list
      *
@@ -49,14 +42,6 @@ class TableController extends Controller
         ]);
     }
 
-
-    // /**
-    //  * show row identified by $id
-    //  *
-    //  * @param  string $table
-    //  * @param  mixed $id
-    //  */
-    // public function show(string $table, $id) {
     /**
      * show row identified by $id
      *
@@ -71,9 +56,31 @@ class TableController extends Controller
         ]);
     }
 
+    /**
+     * update row identified by $id
+     *
+     * @param  Illuminate\Http\Request $request
+     * @param  string $table
+     * @param  string|int $id
+     * @return Response
+     */
     public function update(Request $request, string $table, $id): Response {
         return response()->formatApi([
             'data' => $this->repository->update($request, $table, (int)$id)
         ]);
+    }
+
+    /**
+     * insert new record to $table
+     *
+     * @param  Illuminate\Http\Request $request
+     * @param  string $table
+     * @param  int|string|null $id
+     * @return Response
+     */
+    public function store(Request $request, string $table, int|string|null $id=null): Response {
+        return response()->formatApi([
+            'data' => $this->repository->store($request, $table, $id)
+        ], 201);
     }
 }

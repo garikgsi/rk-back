@@ -28,13 +28,30 @@ class TableModel {
     }
 
     /**
+     * check that field exists in model (search by name)
+     *
+     * @param  string $name
+     * @return bool
+     */
+    public function has(string $name):bool {
+        foreach($this->fields as $field) {
+            if ($field->getName()==$name) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * add few fields to model
      *
      * @param  array $fields
      * @return self
      */
     public function addMany(array $fields):self {
-        $this->fields = array_merge($this->fields, $fields);
+        foreach ($fields as $field) {
+            if (!$this->has($field->getName())) $this->fields[] = $field;
+        }
         return $this;
     }
 

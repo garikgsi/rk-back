@@ -157,7 +157,51 @@ class TableRepositoryService {
     }
 
     /**
-     * check if repository is initialized and classes implemented such interfaces
+     * insert new or copy existed row
+     *
+     * @param  Illuminate\Http\Reques $request
+     * @param  string $table
+     * @param  int|string|null $id
+     * @return TableInterface
+     */
+    public function store(Request $request, string $table, int|string|null $id): TableInterface
+    {
+        $rules = $this->model->validationRules('store');
+        // replace only requested fields in copied row
+        if ($id!=null) {
+            $newRules = [];
+            foreach($rules as $field=>$rule) {
+                if ($request->has($field)) $newRules[$field] = $rule;
+            }
+            $rules = $newRules;
+        }
+        $validator = Validator::make($request->input(),
+            $rules,
+            $this->model->validationMessages('store'),
+            $this->model->validationNames()
+        );
+
+        if ($validator->fails()) {
+            $formattedError = implode(' ',$validator->errors()->all());
+            throw new TableException($formattedError, 422);
+        } else {
+            if ($id==null) {
+                // new row
+                $this->model->fill($validator->validated())->save();
+                $row = $this->model;
+            } else {
+                // copy existed row
+                $row = $this->find($table, $id)->replicate();
+                $row->fill($validator->validated());
+                $row->save();
+            }
+            return $row;
+        }
+    }
+
+
+    /**
+     * check if repository is initialized and class implementes such interfaces
      *
      * @return void
      */
