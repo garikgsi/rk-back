@@ -64,6 +64,7 @@ Route::prefix('v1')
             Route::get('/{table}/{id}',[TableController::class,'show']);
             Route::put('/{table}/{id}',[TableController::class,'update']);
             Route::patch('/{table}/{id}',[TableController::class,'update']);
+            Route::delete('/{table}/{id}',[TableController::class,'delete']);
         });
     })
 ;

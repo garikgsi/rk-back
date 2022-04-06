@@ -166,6 +166,7 @@ class TableRepositoryService {
      */
     public function store(Request $request, string $table, int|string|null $id): TableInterface
     {
+        $this->checks();
         $rules = $this->model->validationRules('store');
         // replace only requested fields in copied row
         if ($id!=null) {
@@ -199,6 +200,19 @@ class TableRepositoryService {
         }
     }
 
+    /**
+     * delete table row identified by $id
+     *
+     * @param  Illuminate\Http\Reques $request
+     * @param  string $table
+     * @param  int $id
+     * @return bool
+     */
+    public function delete(Request $request, string $table, int $id):bool {
+        $this->checks();
+        $row = $this->find($table, $id);
+        return $row->delete();
+    }
 
     /**
      * check if repository is initialized and class implementes such interfaces

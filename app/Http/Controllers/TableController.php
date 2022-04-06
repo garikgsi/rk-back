@@ -83,4 +83,18 @@ class TableController extends Controller
             'data' => $this->repository->store($request, $table, $id)
         ], 201);
     }
+
+    /**
+     * delete row with $id
+     *
+     * @param  Illuminate\Http\Request $request $request
+     * @param  string $table
+     * @param  string|int $id
+     * @return Response
+     */
+    public function delete(Request $request, string $table, $id): Response {
+        return response()->formatApi([
+            $this->repository->delete($request, $table, $id)
+        ], 204);
+    }
 }
