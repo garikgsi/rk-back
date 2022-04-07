@@ -131,7 +131,6 @@ class TableRepositoryService {
     public function update(Request $request, string $table, int $id): TableInterface
     {
         $this->checks();
-
         $rules = $this->model->validationRules('update');
         // for patch request validate only requested fields
         if (strtolower($request->method())=='patch') {

@@ -6,7 +6,10 @@ use App\Exceptions\TableException;
 use Closure;
 use Illuminate\Http\Request;
 use App\Facades\Table;
-
+use Illuminate\Support\Facades\Validator;
+/**
+ * check permissions for request
+ */
 class TableValidation
 {
     /**
@@ -27,13 +30,13 @@ class TableValidation
                 $method = ($request->has('id')) ? 'view' : 'viewAny';
             } break;
             case 'post': {
-                $method = 'create';
+                $method = ($request->has('id')) ? 'copy' : 'store';
             } break;
             case 'put': {
                 $method = 'update';
             } break;
             case 'patch': {
-                $method = 'update';
+                $method = 'patch';
             } break;
             case 'delete': {
                 $method = 'delete';
@@ -42,10 +45,6 @@ class TableValidation
         // if (!$request->user()->can($method, $repository->getModel())) {
         //     throw new TableException('Недостаточно прав для выполнения операции', 403);
         // };
-
-        // TODO
-        // validate form data, if exists rules and data
-        // $request->validate($repository->getModel()->rules($method), $repository->getModel()->messages($method));
 
         // validation comlete
         return $next($request);
