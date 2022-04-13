@@ -178,6 +178,7 @@ return [
         App\Providers\RouteServiceProvider::class,
         App\Providers\TableProvider::class,
         App\Providers\TableModelProvider::class,
+        App\Providers\TokenProvider::class,
 
     ],
 
@@ -195,6 +196,7 @@ return [
     'aliases' => Facade::defaultAliases()->merge([
         'table' => App\Facades\Table::class,
         'tableModel' => App\Facades\TableModel::class,
+        'tokens' => App\Facades\Token::class
     ])->toArray(),
 
 ];

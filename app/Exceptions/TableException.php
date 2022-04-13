@@ -12,7 +12,7 @@ class TableException extends Exception
     public function render($request) {
         if ($request->expectsJson()) {
             return response()->formatApi([
-                'error' => $this->getMessage()
+                'error' => $this->getMessage(),
             ], $this->getCode());
 
         } else {

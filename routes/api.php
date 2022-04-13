@@ -1,13 +1,9 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TableController;
+use App\Http\Controllers\TokenController;
 
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,37 +23,20 @@ Route::prefix('v1')
          */
         Route::prefix('auth')
         ->group(function(){
-            Route::middleware('auth:sanctum')->get('user', function (Request $request) {
-                return $request->user();
+            Route::middleware('auth:sanctum')
+            ->group(function() {
+                Route::get('/user', [TokenController::class,'user']);
+                Route::get('/tokens', [TokenController::class,'getTokens']);
+                Route::post('/tokens', [TokenController::class, 'createToken']);
+                Route::delete('/tokens',[TokenController::class, 'revokeAllTokens']);
+                Route::delete('/tokens/{id}',[TokenController::class, 'revokeToken']);
             });
-            Route::middleware('auth:sanctum')->post('/tokens/create', function (Request $request) {
-                $token = $request->user()->createToken($request->has('token_name') ? $request->token_name : 'simple token');
-
-                return ['token' => $token->plainTextToken];
-            });
-            Route::post('/token', function (Request $request) {
-                $request->validate([
-                    'email' => 'required|email',
-                    'password' => 'required',
-                    'device_name' => 'required',
-                ]);
-
-                $user = User::where('email', $request->email)->first();
-
-                if (! $user || ! Hash::check($request->password, $user->password)) {
-                    throw ValidationException::withMessages([
-                        'email' => ['The provided credentials are incorrect.'],
-                    ]);
-                }
-
-                return $user->createToken($request->device_name)->plainTextToken;
-            });
+            Route::post('/token', [TokenController::class, 'authToken']);
         });
         /**
          * basic api
          */
-        // Route::middleware(['auth:sanctum','validation'])
-        Route::middleware(['validation'])
+        Route::middleware(['auth:sanctum','validation'])
         ->group(function () {
             Route::get('/{table}',[TableController::class,'index']);
             Route::post('/{table}/{id?}',[TableController::class,'store']);
