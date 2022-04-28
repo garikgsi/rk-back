@@ -4,6 +4,7 @@ namespace App\Services\TableClasses;
 
 use App\Services\TableClasses\TableField;
 use App\Services\TableClasses\TableFieldBuilder;
+use App\Services\TableClasses\TableModel as TableFields;
 
 /**
  * service for manage table fields
@@ -69,10 +70,10 @@ class TableModel {
     /**
      * get all fields in model
      *
-     * @return array
+     * @return TableFields
      */
-    public function getFields(): array {
-        return $this->fields;
+    public function getFields(): self {
+        return $this;
     }
 
     /**
@@ -87,5 +88,21 @@ class TableModel {
         }
         return $res;
     }
+
+    /**
+     * getter field from model (search by name)
+     *
+     * @param  string $name
+     * @return ?TableField
+     */
+    public function getField(string $name): ?TableField {
+        foreach($this->fields as $field) {
+            if ($field->getName()==$name) {
+                return $field;
+            }
+        }
+        return null;
+    }
+
 
 }

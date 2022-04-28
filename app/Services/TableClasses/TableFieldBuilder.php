@@ -11,7 +11,7 @@ class TableFieldBuilder {
     public string $title;
     public bool $fillable = false;
     public mixed $defaultValue = null;
-    public TableFieldType $valueType;
+    public string $valueType;
 
 
     /**
@@ -60,11 +60,11 @@ class TableFieldBuilder {
     /**
      * setter fieldType
      *
-     * @param  mixed $valueType
+     * @param  string $valueType
      * @return TableFieldBuilder
      */
     public function setType($valueType):self {
-        $this->valueType = new TableFieldType($valueType);
+        $this->valueType = $valueType;
         return $this;
     }
 

@@ -8,10 +8,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Facades\TableModel;
+use App\Traits\TableFilterTrait;
+use App\Traits\TableOrderLimitsTrait;
 
 class Message extends Model implements TableInterface
 {
-    use HasFactory, SoftDeletes, TableTrait ;
+    use HasFactory, SoftDeletes, TableTrait, TableFilterTrait, TableOrderLimitsTrait;
 
     // protected $title = 'Сообщения';
 
@@ -48,10 +50,10 @@ class Message extends Model implements TableInterface
 
         $this->setFields([
             TableModel::newField('message')->setTitle('Текст сообщения')->fillable()->setType('string')->save(),
-            TableModel::newField('is_translit')->setTitle('Транслителировать')->fillable()->setType('bool')->setDefault(false)->save(),
+            TableModel::newField('is_translit')->setTitle('Транслителировать')->fillable()->setType('boolean')->setDefault(false)->save(),
             TableModel::newField('number')->setTitle('Номер телефона')->fillable()->setType('phone')->save(),
             TableModel::newField('cost')->setTitle('Стоимость')->setType('money')->save(),
-            TableModel::newField('sent_at')->setTitle('Дата отправки')->setType('datettime')->save(),
+            TableModel::newField('sent_at')->setTitle('Дата отправки')->setType('datetime')->save(),
         ]);
 
         $this->setGuarded(['cost', 'sent_at']);

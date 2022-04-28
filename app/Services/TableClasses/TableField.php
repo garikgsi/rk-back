@@ -37,9 +37,9 @@ class TableField {
     /**
      * type of field
      *
-     * @var  TableFieldType
+     * @var  string
      */
-    protected TableFieldType $valueType;
+    protected string $valueType;
 
     /**
      * construct field by builder
@@ -72,5 +72,14 @@ class TableField {
      */
     public function getTitle():string {
         return $this->title;
+    }
+
+    /**
+     * getter field type
+     *
+     * @return string
+     */
+    public function getType():string {
+        return $this->valueType;
     }
 }

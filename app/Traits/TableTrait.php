@@ -8,17 +8,14 @@ namespace App\Traits;
 
 use Exception;
 use Illuminate\Support\Str;
+use App\Services\TableClasses\TableField;
 
 use App\Facades\TableModel;
+use App\Services\TableClasses\TableModel as TableFields;
 
 trait TableTrait {
 
-    /**
-     * table model fields
-     *
-     * @var  array
-     */
-    protected $fields = [];
+    protected TableFields $fields;
 
     /**
      * db table name
@@ -90,11 +87,32 @@ trait TableTrait {
     public function setFields($model) {
         $defaultFields = [
             TableModel::newField('id')->setTitle('id')->setType('number')->save(),
-            TableModel::newField('deleted_at')->setTitle('Дата удаления')->setType('datettime')->save(),
-            TableModel::newField('created_at')->setTitle('Дата создания')->setType('datettime')->save(),
-            TableModel::newField('updated_at')->setTitle('Дата обновления')->setType('datettime')->save(),
+            TableModel::newField('deleted_at')->setTitle('Дата удаления')->setType('datetime')->save(),
+            TableModel::newField('created_at')->setTitle('Дата создания')->setType('datetime')->save(),
+            TableModel::newField('updated_at')->setTitle('Дата обновления')->setType('datetime')->save(),
         ];
         $this->fields = TableModel::addMany(array_merge($defaultFields, $model));
+    }
+
+    /**
+     * get fields model
+     *
+     * @return App\Services\TableClasses\TableModel
+     */
+    public function getFields():TableFields
+    {
+        return $this->fields;
+    }
+
+    /**
+     * get field from model by $name
+     *
+     * @param  string $name
+     * @return ?App\Services\TableClasses\TableField
+     */
+    public function getField(string $name): ?TableField
+    {
+        return $this->fields->getField($name);
     }
 
     /**
@@ -106,6 +124,5 @@ trait TableTrait {
     public function setGuarded(array $fields) {
         $this->guarded = array_merge(['id', 'deleted_at', 'created_at', 'updated_at'], $fields);
     }
-
 
 }

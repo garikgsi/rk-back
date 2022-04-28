@@ -36,10 +36,7 @@ class TableController extends Controller
      * @return Illuminate\Http\Response
      */
     public function index(Request $request): Response {
-        // return $this->repository->show($request);
-        return response()->formatApi([
-            'data'=>$this->repository->show($request)
-        ]);
+        return response()->formatApi($this->repository->show($request));
     }
 
     /**

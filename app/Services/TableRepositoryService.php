@@ -78,10 +78,10 @@ class TableRepositoryService {
     /**
      * getter Model
      *
-     * @param  mixed $table
+     * @param  ?TableInterface $table
      * @return bool
      */
-    public function getModel(): TableInterface | null
+    public function getModel(): ?TableInterface
     {
         $this->checks();
         return $this->model;
@@ -96,7 +96,12 @@ class TableRepositoryService {
     public function show(Request $request):array
     {
         $this->checks();
-        return $this->model->get()->take($request->limit)->toArray();
+        $dataSet = $this->model->filter($request);
+        $count = $dataSet->count();
+        return [
+            'data'=>$dataSet->limits($request)->get()->toArray(),
+            'count'=>$count
+        ];
     }
 
     /**

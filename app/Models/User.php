@@ -10,10 +10,14 @@ use Laravel\Sanctum\HasApiTokens;
 
 use App\Interfaces\TableInterface;
 use App\Traits\TableTrait;
+use App\Traits\TableFilterTrait;
+use App\Facades\TableModel;
+use App\Traits\TableOrderLimitsTrait;
+
 
 class User extends Authenticatable implements TableInterface, MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable, TableTrait;
+    use HasApiTokens, HasFactory, Notifiable, TableTrait, TableFilterTrait, TableOrderLimitsTrait;
 
 
     protected $title = 'Пользователи';
@@ -47,6 +51,18 @@ class User extends Authenticatable implements TableInterface, MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+
+        $this->setFields([
+            TableModel::newField('name')->setTitle('Имя')->fillable()->setType('string')->save(),
+            TableModel::newField('email')->setTitle('Email')->fillable()->setType('email')->save(),
+            TableModel::newField('password')->setTitle('Пароль')->fillable()->setType('password')->save(),
+        ]);
+
+    }
 
 
 }

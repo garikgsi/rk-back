@@ -5,6 +5,9 @@
  */
 namespace App\Interfaces;
 
+use App\Services\TableClasses\TableField;
+use App\Services\TableClasses\TableModel;
+
 interface TableInterface {
     /**
      * table name in database
@@ -52,6 +55,21 @@ interface TableInterface {
      * @param  array $fields
      * @return void
      */
+
     public function setGuarded(array $fields);
+    /**
+     * get fields model
+     *
+     * @return App\Services\TableClasses\TableModel
+     */
+
+    public function getFields():TableModel;
+    /**
+     * get field from model by $name
+     *
+     * @param  string $name
+     * @return ?App\Services\TableClasses\TableField
+     */
+    public function getField(string $name): ?TableField;
 
 }

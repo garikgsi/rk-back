@@ -36,6 +36,7 @@ Route::prefix('v1')
         /**
          * basic api
          */
+        // Route::middleware(['validation'])
         Route::middleware(['auth:sanctum','validation'])
         ->group(function () {
             Route::get('/{table}',[TableController::class,'index']);
