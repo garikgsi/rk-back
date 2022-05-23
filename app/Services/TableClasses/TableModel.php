@@ -104,5 +104,15 @@ class TableModel {
         return null;
     }
 
+    public function getFileFields():array {
+        $fileTypes = ['image'];
+        $fields = [];
+        foreach($this->fields as $field) {
+            if (in_array($field->getType(),$fileTypes)) {
+                $fields[] = $field->getName();
+            }
+        }
+        return $fields;
+    }
 
 }

@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\TokenController;
+use App\Http\Controllers\PublicReportController;
 
 
 /*
@@ -23,6 +24,7 @@ Route::prefix('v1')
          */
         Route::prefix('auth')
         ->group(function(){
+            Route::post('/token', [TokenController::class, 'authToken']);
             Route::middleware('auth:sanctum')
             ->group(function() {
                 Route::get('/user', [TokenController::class,'user']);
@@ -31,8 +33,16 @@ Route::prefix('v1')
                 Route::delete('/tokens',[TokenController::class, 'revokeAllTokens']);
                 Route::delete('/tokens/{id}',[TokenController::class, 'revokeToken']);
             });
-            Route::post('/token', [TokenController::class, 'authToken']);
         });
+
+        /**
+         * reports
+         */
+        Route::prefix('report')
+        ->group(function(){
+            Route::get('/public/{period_id?}', PublicReportController::class);
+        });
+
         /**
          * basic api
          */

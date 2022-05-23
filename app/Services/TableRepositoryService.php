@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+use Illuminate\Support\Facades\Storage;
+
 /**
  * Main Service repository for manipulate data
  */
@@ -150,12 +152,26 @@ class TableRepositoryService {
             $this->model->validationMessages('update'),
             $this->model->validationNames()
         );
+        $validated = $validator->validated();
         if ($validator->fails()) {
             $formattedError = implode(' ',$validator->errors()->all());
             throw new TableException($formattedError, 422);
         } else {
             $row = $this->find($table, $id);
-            $row->fill($validator->validated())->save();
+
+            // save files
+            $files = [];
+            if (method_exists($row, 'updateFiles')) {
+                $files = $row->updateFiles($request);
+            }
+            $dataWithFiles = array_merge($validator->validated(), $files);
+
+            if (!$row->fill($dataWithFiles)->save()) {
+                // clear uploaded files if error
+                if (method_exists($row, 'clearUpload')) {
+                    $row->clearUpload($files);
+                }
+            }
             return $row;
         }
     }
@@ -192,7 +208,21 @@ class TableRepositoryService {
         } else {
             if ($id==null) {
                 // new row
-                $this->model->fill($validator->validated())->save();
+
+                // save files
+                $files = [];
+                if (method_exists($this->model, 'storeFiles')) {
+                    $files = $this->model->storeFiles($request);
+                }
+                $dataWithFiles = array_merge($validator->validated(), $files);
+
+                // save with loaded files
+                if (!$this->model->fill($dataWithFiles)->save()) {
+                    // clear uploaded files if error
+                    if (method_exists($this->model, 'clearUpload')) {
+                        $this->model->clearUpload($files);
+                    }
+                }
                 $row = $this->model;
             } else {
                 // copy existed row
@@ -215,7 +245,16 @@ class TableRepositoryService {
     public function delete(Request $request, string $table, int $id):bool {
         $this->checks();
         $row = $this->find($table, $id);
-        return $row->delete();
+
+        $deleteResult = $row->delete();
+
+        // clear files
+        if ($deleteResult) {
+            if (method_exists($row, 'deleteFiles')) {
+                $row->deleteFiles();
+            }
+        }
+        return $deleteResult;
     }
 
     /**

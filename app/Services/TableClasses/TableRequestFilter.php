@@ -71,7 +71,6 @@ class TableRequestFilter
                     case 'in': case 'ni': {
                         // json decode string
                         $searchArray = json_decode($fieldFilter, true);
-
                         if ($searchArray===null || !is_array($searchArray)) {
                             $searchArray = [$fieldFilter];
                         }
@@ -86,7 +85,7 @@ class TableRequestFilter
                                     }
                                 }
                             } break;
-                            case 'number': {
+                            case 'number': case 'select': {
                                 foreach ($searchArray as $searchValue) {
                                     $validatedFilter = filter_var($searchValue, FILTER_VALIDATE_INT,FILTER_NULL_ON_FAILURE);
                                     if ($validatedFilter !== null) {

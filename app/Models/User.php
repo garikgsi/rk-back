@@ -64,5 +64,14 @@ class User extends Authenticatable implements TableInterface, MustVerifyEmail
 
     }
 
+    // relations
+    /**
+     * parent related this account
+     *
+     * @return void
+     */
+    public function kidParent() {
+        return $this->hasOne(KidParent::class);
+    }
 
 }
