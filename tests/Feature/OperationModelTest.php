@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Models\Operation;
 use App\Models\Plan;
+use App\Models\Period;
 
 class OperationModelTest extends TestCase
 {
@@ -30,5 +31,18 @@ class OperationModelTest extends TestCase
         $this->assertTrue($operation->plan instanceof Plan);
         $this->assertSame($operation->plan->toArray(), Plan::find($operation->plan_id)->toArray());
     }
+
+    /**
+     * test Period Model relation
+     *
+     * @return void
+     */
+    public function testPeriodRelation()
+    {
+        $plan = Operation::whereNotNull('period_id')->get()->random();
+        $this->assertTrue($plan->period instanceof Period);
+        $this->assertSame($plan->period->toArray(), Period::find($plan->period_id)->toArray());
+    }
+
 
 }

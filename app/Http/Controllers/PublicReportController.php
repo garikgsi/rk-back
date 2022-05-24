@@ -13,6 +13,12 @@ use App\Exceptions\TableException;
 
 class PublicReportController extends Controller
 {
+    /**
+     * return public data
+     *
+     * @param  mixed $request
+     * @return void
+     */
     public function __invoke(Request $request)
     {
         // period
@@ -49,11 +55,11 @@ class PublicReportController extends Controller
                     'plans'=> PlanReportResource::collection($plans),
                     'periods' => PeriodReportResource::collection($periods),
                     'totals' => [
-                        'operations' => $sumOperations,
-                        'plans' => $sumPlans,
-                        'payments' => $sumPayments,
-                        'startDebt' => $startDebt,
-                        'startSaldo' => $startSaldo
+                        'operations' => round($sumOperations,2),
+                        'plans' => round($sumPlans,2),
+                        'payments' => round($sumPayments,2),
+                        'startDebt' => round($startDebt,2),
+                        'startSaldo' => round($startSaldo,2)
                     ],
                 ]
             ]);

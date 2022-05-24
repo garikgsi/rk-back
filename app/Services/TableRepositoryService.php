@@ -52,9 +52,9 @@ class TableRepositoryService {
      * alternative constructor for Facade usage
      *
      * @param  string $table
-     * @return TableRepositoryService
+     * @return self
      */
-    public function use(string $table) : TableRepositoryService | null
+    public function use(string $table) : self | null
     {
         $modelClass = $this->convertTableToModel($table);
         if (class_exists($modelClass)) {

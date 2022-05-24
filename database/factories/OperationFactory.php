@@ -23,7 +23,8 @@ class OperationFactory extends Factory
             'price' =>$this->faker->randomFloat(0,200,2000),
             'quantity' =>$this->faker->randomFloat(0,1,30),
             'amount' =>$this->faker->randomFloat(0,600,6000),
-            'image' => $this->faker->imageUrl(),
+            'image' => rand(0,5)==3 ? $this->faker->imageUrl() : null,
+            'check_url' => rand(0,5)==3 ? $this->faker->imageUrl() : null
         ];
     }
 

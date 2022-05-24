@@ -104,6 +104,11 @@ class TableModel {
         return null;
     }
 
+    /**
+     * getter all file fields
+     *
+     * @return array
+     */
     public function getFileFields():array {
         $fileTypes = ['image'];
         $fields = [];
