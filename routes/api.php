@@ -4,6 +4,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\TokenController;
 use App\Http\Controllers\PublicReportController;
+use App\Http\Controllers\ApiRegisterController;
+use App\Http\Controllers\ApiConfirmRegistrationController;
+use App\Http\Controllers\ApiSendNewCodeController;
+use App\Http\Controllers\ApiRestorePasswordController;
 
 
 /*
@@ -22,9 +26,13 @@ Route::prefix('v1')
         /**
          * tokens api
          */
-        Route::prefix('auth')
+        Route::prefix('auth')->middleware(['throttle:check_code'])
         ->group(function(){
             Route::post('/token', [TokenController::class, 'authToken']);
+            Route::post('/register',[ApiRegisterController::class, 'register']);
+            Route::post('/confirm_registration',[ApiConfirmRegistrationController::class, 'confirmRegistration']);
+            Route::post('/new_code',[ApiSendNewCodeController::class, 'createCode']);
+            Route::post('/restore_password',[ApiRestorePasswordController::class, 'restorePassword']);
             Route::middleware('auth:sanctum')
             ->group(function() {
                 Route::get('/user', [TokenController::class,'user']);

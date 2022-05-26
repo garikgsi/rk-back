@@ -7,6 +7,7 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\App;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -49,6 +50,18 @@ class RouteServiceProvider extends ServiceProvider
     {
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+
+        Ratelimiter::for('check_code',function(Request $request) {
+            $environment = App::environment();
+            return $environment=='testing' ?
+                Limit::perMinute(1000)->by($request->user()?->id ?: $request->ip()) :
+                Limit::perMinute(5)->by($request->input('email'))
+                ->response(function () {
+                    return response()->formatApi([
+                        'error' => "Слишком много обращений"
+                    ], 429);
+                });
         });
     }
 }

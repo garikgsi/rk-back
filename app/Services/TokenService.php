@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Exceptions\TokenException;
 use Illuminate\Support\Facades\Hash;
-use App\Facades\Table;
 use Exception;
 use Illuminate\Support\Facades\Validator;
 
@@ -33,6 +32,19 @@ class TokenService
     public function create(Request $request): string
     {
         $token = $request->user()->createToken($request->has('token_name') ? $request->token_name : 'simple token');
+        return $token->plainTextToken;
+    }
+
+    /**
+     * create new token for user
+     *
+     * @param  User $user
+     * @param  string $tokenName
+     * @return string
+     */
+    public function createUserToken(User $user, string $tokenName='simple token'): string
+    {
+        $token = $user->createToken($tokenName);
         return $token->plainTextToken;
     }
 
@@ -64,8 +76,11 @@ class TokenService
 
             if (! $user || ! Hash::check($request->password, $user->password)) {
                 throw new TokenException("Неверная связка логин-пароль", 401);
+            } elseif(!$user->hasVerifiedEmail()) {
+                throw new TokenException("Электронная почта не была подтверждена", 403);
+            } else {
+                return $user->createToken($request->device_name)->plainTextToken;
             }
-            return $user->createToken($request->device_name)->plainTextToken;
         }
     }
 

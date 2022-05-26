@@ -95,15 +95,17 @@ class FilesTest extends TestCase
         $newFile = $file->hashName();
         $url = "operations/$operation->id";
         $response = $this->request($url, $data, 'patchJson');
-        $response->assertStatus(200)
-            ->assertJson([
-                'is_error' => false,
-                'error' => null,
-                'data' => array_merge($operation->toArray(), ['image' => env('APP_URL').'/file/'.$newFile])]
-            );
-            Storage::assertMissing($storageFile);
-            Storage::assertExists($newFile);
-            return ['id'=>$operation->id, 'file'=>$newFile];
+        $response->assertStatus(200);
+        $response->assertJson(function (AssertableJson $json) use($newFile){
+            $json->has('data')
+            ->where('data.image',env('APP_URL').'/file/'.$newFile)
+            ->where('is_error', false)
+            ->where('error',null)
+            ->etc();
+        });
+        Storage::assertMissing($storageFile);
+        Storage::assertExists($newFile);
+        return ['id'=>$operation->id, 'file'=>$newFile];
     }
 
     /**

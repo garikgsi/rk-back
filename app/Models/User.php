@@ -41,6 +41,8 @@ class User extends Authenticatable implements TableInterface, MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
+        'code',
+        'code_expired',
     ];
 
     /**
@@ -50,6 +52,7 @@ class User extends Authenticatable implements TableInterface, MustVerifyEmail
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'code_expired' => 'datetime',
     ];
 
     public function __construct(array $attributes = [])

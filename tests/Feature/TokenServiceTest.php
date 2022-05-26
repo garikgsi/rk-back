@@ -9,6 +9,7 @@ use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 use Illuminate\Testing\TestResponse;
 use Illuminate\Testing\Fluent\AssertableJson;
+use App\Facades\Token;
 
 class TokenServiceTest extends TestCase
 {
@@ -71,6 +72,30 @@ class TokenServiceTest extends TestCase
     }
 
     /**
+     * test error when correct login-password but email wasn't verifeid
+     *
+     * @return void
+     */
+    public function testUnverifeidLogin() {
+        $user = User::get()->random();
+        $user->email_verified_at = null;
+        $user->save();
+        $url = 'auth/token';
+        $postData = [
+            'email' => $user->email,
+            'password' => 'password',
+            'device_name' => 'device',
+        ];
+        $response = $this->request($url, 'post', $postData, false);
+        $response->assertStatus(403)
+            ->assertJson([
+                'is_error' => true,
+                'error'=>'Электронная почта не была подтверждена'
+            ]);
+    }
+
+
+    /**
      * test error auth without require field
      *
      * @return void
@@ -111,6 +136,18 @@ class TokenServiceTest extends TestCase
             ->where('is_error', false)
             ->etc();
         });
+    }
+
+    /**
+     * create new token for user
+     *
+     * @return void
+     */
+    public function testGetUserToken()
+    {
+        $user = User::whereNotNull('email_verified_at')->get()->random();
+        $token = Token::createUserToken($user);
+        $this->assertTrue(is_string($token));
     }
 
     /**

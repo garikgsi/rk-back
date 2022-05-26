@@ -179,6 +179,7 @@ return [
         App\Providers\TableProvider::class,
         App\Providers\TableModelProvider::class,
         App\Providers\TokenProvider::class,
+        App\Providers\UserApiRegistrationServiceProvider::class,
 
     ],
 
@@ -196,7 +197,8 @@ return [
     'aliases' => Facade::defaultAliases()->merge([
         'table' => App\Facades\Table::class,
         'tableModel' => App\Facades\TableModel::class,
-        'tokens' => App\Facades\Token::class
+        'tokens' => App\Facades\Token::class,
+        'user_api_registration' => App\Facades\UserApiRegistration::class
     ])->toArray(),
 
 ];
