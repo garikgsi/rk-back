@@ -31,6 +31,7 @@ class User extends Authenticatable implements TableInterface, MustVerifyEmail
         'name',
         'email',
         'password',
+        'invited_by',
     ];
 
     /**

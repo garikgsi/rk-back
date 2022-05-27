@@ -8,7 +8,7 @@ use App\Exceptions\RegisterException;
 use Illuminate\Validation\Rules;
 use App\Facades\UserApiRegistration;
 use App\Events\ApiPasswordReset;
-
+use App\Facades\Token;
 
 class ApiRestorePasswordController extends Controller
 {
@@ -34,7 +34,12 @@ class ApiRestorePasswordController extends Controller
             $user = UserApiRegistration::changePassword(email:$userData['email'], code:$userData['code'], password:$userData['password']);
             if ($user) {
                 event(new ApiPasswordReset($user));
-                return response()->formatApi([], 200);
+                $responseData = array_merge($user->toArray(), [
+                    'token' => Token::createUserToken($user)
+                ]);
+                return response()->formatApi([
+                    'data'=>$responseData
+                ], 200);
             } else {
                 return response()->formatApi([
                     'data' => null,

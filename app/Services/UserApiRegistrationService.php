@@ -6,7 +6,9 @@ use App\Exceptions\UserException;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Exception;
+use Illuminate\Support\Str;
 
 class UserApiRegistrationService {
     /**
@@ -16,6 +18,18 @@ class UserApiRegistrationService {
      */
     protected User $user;
 
+    /**
+     * register new user (invite) by registered user
+     *
+     * @param  User $user
+     * @param  string $email
+     * @param  string $name
+     * @return User
+     */
+    public function inviteUser(User $user, string $email, string $name):User {
+        $this->user = $user;
+        return $this->create(name:$name, email:$email, password:Str::random(10), invited_by:$user->id);
+    }
 
     /**
      * find user by email
@@ -41,17 +55,17 @@ class UserApiRegistrationService {
      * @param  string $password
      * @return User
      */
-    public function create($name, $email, $password):User {
+    public function create($name, $email, $password, $invited_by=null):User {
         $userData = [
             'email' => $email,
             'name' => $name,
-            'password' => $this->hashPassword($password)
+            'password' => $this->hashPassword($password),
+            'invited_by' => $invited_by,
         ];
         try {
             $user = User::create($userData);
             $this->user = $user;
             return $this->setNewCode($user);
-
         } catch (Exception $e) {
             throw new UserException('Не удалось создать пользователя', 404);
         }

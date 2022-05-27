@@ -8,6 +8,7 @@ use App\Http\Controllers\ApiRegisterController;
 use App\Http\Controllers\ApiConfirmRegistrationController;
 use App\Http\Controllers\ApiSendNewCodeController;
 use App\Http\Controllers\ApiRestorePasswordController;
+use App\Http\Controllers\ApiInviteController;
 
 
 /*
@@ -40,6 +41,7 @@ Route::prefix('v1')
                 Route::post('/tokens', [TokenController::class, 'createToken']);
                 Route::delete('/tokens',[TokenController::class, 'revokeAllTokens']);
                 Route::delete('/tokens/{id}',[TokenController::class, 'revokeToken']);
+                Route::post('/invite',[ApiInviteController::class, 'invite']);
             });
         });
 

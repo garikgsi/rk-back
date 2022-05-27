@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Auth\Events\Verified;
 use App\Notifications\RegCode;
 use App\Events\ApiPasswordReset;
+use App\Events\Invited;
+use App\Notifications\InviteNotification;
 
 
 
@@ -187,7 +189,8 @@ class ApiRegistrationServiceTest extends TestCase
         $response = $this->request($url, 'post', $postData);
         $response->assertStatus(200);
         $response->assertJson(function (AssertableJson $json){
-            $json->has('data')
+            $json->has('data.id')
+            ->has('data.token')
             ->where('is_error', false)
             ->where('error',null)
             ->etc();
@@ -386,10 +389,13 @@ class ApiRegistrationServiceTest extends TestCase
         $this->travel(-10)->minutes();
         $response = $this->request($url, 'post', $postData);
         $response->assertStatus(200);
-        $response->assertJson([
-            'is_error' => false,
-            'error' => null
-        ]);
+        $response->assertJson(function (AssertableJson $json){
+            $json->has('data.id')
+            ->has('data.token')
+            ->where('is_error', false)
+            ->where('error',null)
+            ->etc();
+        });
 
         Event::assertDispatched(ApiPasswordReset::class);
         $newUser = User::find($user->id);
@@ -397,6 +403,73 @@ class ApiRegistrationServiceTest extends TestCase
         $this->assertTrue(is_null($newUser->code));
     }
 
+    /**
+     * expect error 422 when invited registered user
+     *
+     * @return void
+     */
+    public function testInviteExistedUser() {
+        Event::fake();
+        $user = User::get()->random();
+        $url = 'auth/invite';
+        $postData = [
+            'name' => 'Invited User',
+            'email' => $user->email,
+        ];
+        $response = $this->request($url, 'post', $postData, true);
+        $response->assertStatus(422);
+        $response->assertJson(function (AssertableJson $json) use ($user){
+            $json->where('is_error', true)
+            ->where('error',"Пользователь c электронной почтой $user->email уже приглашен")
+            ->etc();
+        });
+
+        Event::assertNotDispatched(Invited::class);
+    }
+
+    /**
+     * expect error 422 when invited with invalid credentions
+     *
+     * @return void
+     */
+    public function testInviteUserWithInvalidCredentions() {
+        Event::fake();
+        $url = 'auth/invite';
+        $postData = [
+            'email' => 'wrong@email',
+        ];
+        $response = $this->request($url, 'post', $postData, true);
+        $response->assertStatus(422);
+        $response->assertJson(function (AssertableJson $json){
+            $json->where('is_error', true)
+            ->etc();
+        });
+
+        Event::assertNotDispatched(Invited::class);
+    }
+
+    /**
+     * expect code 201 when invited user is OK
+     *
+     * @return void
+     */
+    public function testInviteUser() {
+        Notification::fake();
+        $url = 'auth/invite';
+        $email = 'test_invite_user@example.mail';
+        $postData = [
+            'email' => $email,
+            'name' => 'Invited User'
+        ];
+        $response = $this->request($url, 'post', $postData, true);
+        $response->assertStatus(201);
+        $newUser = User::where('email',$email)->first();
+        Notification::assertSentTo(
+            [$newUser], function (InviteNotification $notification) use ($newUser) {
+                return $notification->user->email === $newUser->email && $notification->user->code==$newUser->code;
+            }
+        );
+    }
 
     /**
      * request

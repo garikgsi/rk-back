@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\Event;
 use App\Events\CodeGenerated;
 use App\Listeners\UserNewCodeNotification;
 use App\Events\ApiUserRegisterd;
+use App\Events\Invited;
 use App\Listeners\ApiUserRegister;
+use App\Listeners\SendInvite;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -27,6 +29,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         ApiUserRegisterd::class => [
             ApiUserRegister::class
+        ],
+        Invited::class => [
+            SendInvite::class
         ],
     ];
 

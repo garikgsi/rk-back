@@ -41,9 +41,12 @@ class ApiConfirmRegistrationController extends Controller
                 if (UserApiRegistration::clearCode($user)) {
                     event(new Verified($user));
                     // return token if verified
-                    return response()->formatApi([
-                        'data' => Token::createUserToken($user,'registration')
+                    $responseData = array_merge($user->toArray(), [
+                        'token' => Token::createUserToken($user, 'registration')
                     ]);
+                    return response()->formatApi([
+                        'data'=>$responseData
+                    ], 200);
                 }
             }
         }

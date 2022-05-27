@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->string('code', 32)->nullable()->default(null);
             $table->datetime('code_expired')->nullable()->default(null);
+            $table->foreignId('invited_by')->nullable()->default(null);
         });
     }
 
@@ -32,6 +33,9 @@ return new class extends Migration
             }
             if (Schema::hasColumn('users', 'code_expired')) {
                 $table->dropColumn('code_expired');
+            }
+            if (Schema::hasColumn('users', 'invited_by')) {
+                $table->dropColumn('invited_by');
             }
         });
     }
