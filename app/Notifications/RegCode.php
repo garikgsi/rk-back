@@ -48,12 +48,12 @@ class RegCode extends Notification
         $codeValidDate->tz('Europe/Moscow');
         return (new MailMessage)
             ->from('admin@test.com', 'Ваш личный почтальон')
-            ->subject('Новый код для подтверждения регистрации')
+            ->subject('Новый проверочный код')
             ->greeting('Здравствуйте!')
             ->line('Мы сгенерировали для Вас новый код подтверждения:')
             ->line($this->user->code)
             ->line('Используйте его для подтверждения регистрации на сайте или смене пароля.')
-            ->line('Код действителен до '.$codeValidDate->format('d.m.Y H:i:s').' (MSK)')
+            ->line('Код действителен до '.$codeValidDate->format('d.m.Y H:i:s').' (Время московское)')
             ->salutation('С уважением, Служба технической поддержки');
     }
 

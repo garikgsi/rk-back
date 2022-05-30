@@ -21,6 +21,8 @@ use App\Notifications\RegCode;
 use App\Events\ApiPasswordReset;
 use App\Events\Invited;
 use App\Notifications\InviteNotification;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 
 
@@ -80,6 +82,9 @@ class ApiRegistrationServiceTest extends TestCase
                 return $notification->user->email === $newUser->email && $notification->user->code==$newUser->code;
             }
         );
+
+        $this->assertTrue(Auth::attempt(['email'=>$email, 'password'=>'password']));
+
         return $newUser;
     }
 
@@ -378,7 +383,7 @@ class ApiRegistrationServiceTest extends TestCase
     public function testRestorePassword($user) {
         Event::fake();
         $url = 'auth/restore_password';
-        $newPassword = 'password125';
+        $newPassword = Str::random(10);
         $postData = [
             'email' => $user->email,
             'code' => $user->code,
@@ -401,6 +406,7 @@ class ApiRegistrationServiceTest extends TestCase
         $newUser = User::find($user->id);
         $this->assertTrue(UserApiRegistration::attemptPassword($newPassword, $newUser->password));
         $this->assertTrue(is_null($newUser->code));
+        $this->assertTrue(Auth::attempt(['email'=>$user->email, 'password'=>$newPassword]));
     }
 
     /**

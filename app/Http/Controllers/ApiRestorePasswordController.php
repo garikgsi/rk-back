@@ -33,6 +33,8 @@ class ApiRestorePasswordController extends Controller
             $userData = $validator->validated();
             $user = UserApiRegistration::changePassword(email:$userData['email'], code:$userData['code'], password:$userData['password']);
             if ($user) {
+                // for invited users set verified email
+                if (!is_null($user->invited_by)) $user->markEmailAsVerified();
                 event(new ApiPasswordReset($user));
                 $responseData = array_merge($user->toArray(), [
                     'token' => Token::createUserToken($user)

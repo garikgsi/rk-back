@@ -8,6 +8,7 @@ use App\Exceptions\TokenException;
 use Illuminate\Support\Facades\Hash;
 use Exception;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 
 class TokenService
@@ -72,15 +73,19 @@ class TokenService
             $formattedError = implode(' ',$validator->errors()->all());
             throw new TokenException($formattedError, 422);
         } else {
-            $user = User::where('email', $request->email)->first();
-
-            if (! $user || ! Hash::check($request->password, $user->password)) {
-                throw new TokenException("Неверная связка логин-пароль", 401);
-            } elseif(!$user->hasVerifiedEmail()) {
-                throw new TokenException("Электронная почта не была подтверждена", 403);
-            } else {
-                return $user->createToken($request->device_name)->plainTextToken;
+            $userData = $validator->validated();
+            // dd($userData);
+            $user = User::where('email', $userData["email"])->first();
+            if ($user) {
+                if (Auth::attempt(['email'=>$userData["email"], 'password'=>$userData["password"]])) {
+                    if (!$user->hasVerifiedEmail() ) {
+                        throw new TokenException("Электронная почта не была подтверждена", 403);
+                    } else {
+                        return $user->createToken($userData["device_name"])->plainTextToken;
+                    }
+                }
             }
+            throw new TokenException("Неверная связка логин-пароль", 401);
         }
     }
 
