@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use App\Facades\Table;
 use App\Interfaces\TableInterface;
 use Carbon\Carbon;
-use PhpParser\Node\Stmt\TryCatch;
 
 class TableRequestFilter
 {
@@ -21,10 +20,12 @@ class TableRequestFilter
      * @param  Request $request
      * @return void
      */
-    public function __construct(Request $request)
+    public function __construct(Request $request, TableInterface $model)
     {
         $this->request = $request;
-        $this->model = Table::use($request->table)->getModel();
+        $this->model = $model;
+        // dd($request->all());
+        // $this->model = Table::use($table)->getModel();
     }
 
     /**

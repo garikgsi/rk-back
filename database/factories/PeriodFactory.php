@@ -18,6 +18,8 @@ class PeriodFactory extends Factory
     {
         return [
             'name' => mb_substr($this->faker->realText(),0,rand(8,15)),
+            'start_date' => $this->faker->date(),
+            'end_date' => $this->faker->date()
         ];
     }
 }

@@ -21,7 +21,7 @@ class KidFactory extends Factory
             'last_name' => $this->faker->lastName(),
             'patronymic' => $this->faker->middleName(),
             'birthday' => $this->faker->date(),
-            'start_study' => $this->faker->date('2021-m-d H:i:s'),
+            'start_study' => $this->faker->date('Y-m-d'),
         ];
     }
 }

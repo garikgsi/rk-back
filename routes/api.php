@@ -9,7 +9,13 @@ use App\Http\Controllers\ApiConfirmRegistrationController;
 use App\Http\Controllers\ApiSendNewCodeController;
 use App\Http\Controllers\ApiRestorePasswordController;
 use App\Http\Controllers\ApiInviteController;
-
+use App\Http\Controllers\KidController;
+use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\PeriodController;
+use App\Http\Controllers\KidParentController;
+use App\Http\Controllers\OperationController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PlanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,7 +56,26 @@ Route::prefix('v1')
          */
         Route::prefix('report')
         ->group(function(){
-            Route::get('/public/{period_id?}', PublicReportController::class);
+            Route::get('/public/{slug}/{period_id?}', PublicReportController::class);
+        });
+
+
+        Route::middleware(['auth:sanctum'])
+        ->group(function () {
+            Route::get('/organizations',[OrganizationController::class,'index']);
+            Route::get('/organizations/{id}',[OrganizationController::class,'show']);
+            Route::get('/kids',[KidController::class,'index']);
+            Route::get('/kids/{id}',[KidController::class,'show']);
+            Route::get('/periods',[PeriodController::class,'index']);
+            Route::get('/periods/{id}',[PeriodController::class,'show']);
+            Route::get('/kid_parents',[KidParentController::class,'index']);
+            Route::get('/kid_parents/{id}',[KidParentController::class,'show']);
+            Route::get('/payments',[PaymentController::class,'index']);
+            Route::get('/payments/{id}',[PaymentController::class,'show']);
+            Route::get('/operations',[OperationController::class,'index']);
+            Route::get('/operations/{id}',[OperationController::class,'show']);
+            Route::get('/plans',[PlanController::class,'index']);
+            Route::get('/plans/{id}',[PlanController::class,'show']);
         });
 
         /**

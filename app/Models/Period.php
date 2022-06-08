@@ -10,7 +10,7 @@ use App\Facades\TableModel;
 use App\Traits\TableFilterTrait;
 use App\Traits\TableOrderLimitsTrait;
 use App\Traits\TableTrait;
-
+use Illuminate\Support\Facades\Auth;
 
 class Period extends Model implements TableInterface
 {
@@ -26,10 +26,13 @@ class Period extends Model implements TableInterface
     protected $validation = [
         'rules' => [
             'name' => 'string|required',
-            'start_date' => 'date',
-            'end_date' => 'date',
+            'start_date' => 'date|required',
+            'end_date' => 'date|required|after:start_date',
+            'organization_id' => 'integer|nullable',
         ],
-        'messages' => [],
+        'messages' => [
+            'end_date:after' => 'Дата окончания периода должна быть позже его начала'
+        ],
     ];
 
     /**
@@ -46,12 +49,23 @@ class Period extends Model implements TableInterface
             TableModel::newField('name')->setTitle('Обозначение периода')->fillable()->setType('string')->save(),
             TableModel::newField('start_date')->setTitle('Дата начала периода')->setType('date')->save(),
             TableModel::newField('end_date')->setTitle('Дата окончания периода')->setType('date')->save(),
+            TableModel::newField('organization_id')->setTitle('Учреждение')->setType('select')->save(),
         ]);
         $this->setGuarded([]);
 
     }
 
     // relations
+
+    /**
+     * organization where period made
+     *
+     * @return void
+     */
+    public function organization() {
+        return $this->belongsTo(Organization::class);
+    }
+
     /**
      * plans on period
      *
@@ -77,5 +91,16 @@ class Period extends Model implements TableInterface
         return $this->hasMany(Payment::class);
     }
 
-
+    // helpers
+    /**
+     * return if user is admin of  organization belongs period
+     *
+     * @return bool
+     */
+    public function isAdmin():bool {
+        if ($this->organization) {
+            return $this->organization->isAdmin();
+        }
+        return false;
+    }
 }

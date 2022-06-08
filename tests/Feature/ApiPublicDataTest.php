@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Organization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -30,10 +31,11 @@ class ApiPublicDataTest extends TestCase
      */
     public function test_get_public_info_without_period()
     {
-        $response = $this->getJson("/api/v1/report/public");
-        $periods = Period::get();
+        $organization = Organization::get()->random();
+        $response = $this->getJson("/api/v1/report/public/$organization->slug");
+        $periods = $organization->periods();
 
-        $defaultPeriod = Period::get()->last();
+        $defaultPeriod = $organization->periods()->orderBy('end_date', 'desc')->orderBy('id','desc')->get()->first();
         if ($defaultPeriod) {
             $operations = $defaultPeriod->operations()->get();
             $plans = $defaultPeriod->plans()->get();
@@ -72,8 +74,9 @@ class ApiPublicDataTest extends TestCase
      */
     public function test_get_public_info_with_period()
     {
-        $period = Period::get()->random();
-        $response = $this->getJson("/api/v1/report/public/$period->id");
+        $organization = Organization::get()->random();
+        $period = $organization->periods->random();
+        $response = $this->getJson("/api/v1/report/public/$organization->slug/$period->id");
 
         $operations = $period->operations()->get();
         $plans = $period->plans()->get();
@@ -108,13 +111,32 @@ class ApiPublicDataTest extends TestCase
      */
     public function test_get_public_info_with_empty_period_table()
     {
-        Period::whereNotNull('id')->delete();
-        $response = $this->getJson("/api/v1/report/public/");
+        $organization = Organization::get()->random();
+        $organization->periods()->delete();
+        $response = $this->getJson("/api/v1/report/public/$organization->slug");
 
         $response->assertStatus(422)
             ->assertJson(fn (AssertableJson $json) =>
                 $json->where('is_error', true)
                 ->where('error', 'Похоже, данные еще не были внесены')
+        );
+        Period::withTrashed()->restore();
+    }
+
+    /**
+     * test get public info with wrong slug
+     *
+     * @return void
+     */
+    public function test_get_public_info_with_wrong_slug()
+    {
+        Period::whereNotNull('id')->delete();
+        $response = $this->getJson("/api/v1/report/public/_wrong_slug_");
+
+        $response->assertStatus(404)
+            ->assertJson(fn (AssertableJson $json) =>
+                $json->where('is_error', true)
+                ->where('error', 'Невозможно прочитать отчет')
         );
         Period::withTrashed()->restore();
     }

@@ -23,8 +23,8 @@ trait TableFilterTrait
      */
     public function scopeFilter(Builder $builder, Request $request)
     {
-
-        $requestFilter = new TableRequestFilter($request);
+        // dd($this->title());
+        $requestFilter = new TableRequestFilter($request, $this);
         $requestFilter->filter($builder);
     }
 

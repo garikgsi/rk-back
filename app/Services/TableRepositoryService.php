@@ -4,13 +4,12 @@ namespace App\Services;
 
 use App\Exceptions\TableException;
 use App\Interfaces\TableInterface;
-use Exception;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use App\Exceptions\PermissionsException;
 
 /**
  * Main Service repository for manipulate data
@@ -34,7 +33,10 @@ class TableRepositoryService {
      * @var undefined
      */
     protected $modelClass = null;
-
+    /**
+     * the main repository as Eloquent Builder
+     */
+    protected Builder $repository;
 
 
     /**
@@ -43,9 +45,12 @@ class TableRepositoryService {
      * @param  string $table
      * @return void
      */
-    public function __construct(string $table='')
+    public function __construct(Request $request)
     {
-        if ($table !== '') $this->use($table);
+        // use table as request param if exists
+        if ($request->table) {
+            $this->use($request->table);
+        }
     }
 
     /**
@@ -56,14 +61,67 @@ class TableRepositoryService {
      */
     public function use(string $table) : self | null
     {
-        $modelClass = $this->convertTableToModel($table);
+        $this->table = $table;
+        $modelClass = $this->convertTableToModel();
         if (class_exists($modelClass)) {
-            $this->table = $table;
             $this->model = new $modelClass;
+            // fill repository
+            $this->fillRepository($this->model->where('id','>',0));
         } else {
             throw new TableException("Таблица $table не найдена в описании моделей", 404);
         }
         return $this;
+    }
+
+    /**
+     * fill repository all table data
+     *
+     * @param  Builder $builder
+     * @return void
+     */
+    public function fillRepository(Builder $builder)
+    {
+        $this->repository = $builder;
+    }
+
+    /**
+     * count filtered data
+     *
+     * @return void
+     */
+    public function dataCount() {
+        return $this->repository->count();
+    }
+
+    /**
+     * return class name of resource form model
+     *
+     * @return void
+     */
+    public function resourceClass()
+    {
+        $resourceClass = 'App\\Http\\Resources\\'.Str::singular(Str::studly($this->table)).'Resource';
+        return class_exists($resourceClass) ? $resourceClass : null;
+    }
+
+    /**
+     * return all data from repository
+     *
+     * @return Illuminate\Database\Eloquent\Collection
+     */
+    public function getAll():Collection
+    {
+        return $this->repository->get();
+    }
+
+    /**
+     * return array of ids repository rows
+     *
+     * @return array
+     */
+    public function getIds():array
+    {
+        return $this->repository->get()->pluck('id')->all();
     }
 
     /**
@@ -72,9 +130,9 @@ class TableRepositoryService {
      * @param  mixed $table
      * @return string
      */
-    protected function convertTableToModel(string $table)
+    protected function convertTableToModel()
     {
-        return 'App\\Models\\'.Str::singular(Str::studly($table));
+        return 'App\\Models\\'.Str::singular(Str::studly($this->table));
     }
 
     /**
@@ -95,14 +153,13 @@ class TableRepositoryService {
      * @param  Request $request
      * @return array
      */
-    public function show(Request $request):array
+    public function get(Request $request):array
     {
         $this->checks();
-        $dataSet = $this->model->filter($request);
-        $count = $dataSet->count();
+        // dd($this->getModel());
         return [
-            'data'=>$dataSet->limits($request)->get()->toArray(),
-            'count'=>$count
+            'data' => $this->repository->filter($request)->limits($request)->get(),
+            'count' => $this->dataCount(),
         ];
     }
 
@@ -116,14 +173,11 @@ class TableRepositoryService {
     public function find(string $table, int $id): TableInterface
     {
         $this->checks();
-        try {
-            return $this->model->findOrFail($id);
-        } catch (Exception $e) {
-            if ($e instanceof NotFoundHttpException) {
-                throw new TableException("Запись с id=$id не найдена таблице ".$this->model->title()."", 404);
-            } else {
-                throw new TableException("Не удалось извлечь запись с id=$id из таблицы ".$this->model->title()."", 404);
-            }
+        $row = $this->repository->where('id',$id)->first();
+        if ($row) {
+            return $row;
+        } else {
+            throw new TableException("Не удалось извлечь запись с id=$id из таблицы ".$this->model->title()."", 404);
         }
     }
 
@@ -133,47 +187,52 @@ class TableRepositoryService {
      * @param  Illuminate\Http\Reques $request
      * @param  string $table
      * @param  int $id
-     * @return TableInterface
+     * @return ?TableInterface
      */
-    public function update(Request $request, string $table, int $id): TableInterface
+    public function update(Request $request, string $table, int $id): ?TableInterface
     {
         $this->checks();
-        $rules = $this->model->validationRules('update');
-        // for patch request validate only requested fields
-        if (strtolower($request->method())=='patch') {
-            $newRules = [];
-            foreach($rules as $field=>$rule) {
-                if ($request->has($field)) $newRules[$field] = $rule;
+        $row = $this->find($table, $id);
+        // check permissions
+            $rules = $row->validationRules('update');
+            // for patch request validate only requested fields
+            if (strtolower($request->method())=='patch') {
+                $newRules = [];
+                foreach($rules as $field=>$rule) {
+                    if ($request->has($field)) $newRules[$field] = $rule;
+                }
+                $rules = $newRules;
             }
-            $rules = $newRules;
-        }
-        $validator = Validator::make($request->input(),
-            $rules,
-            $this->model->validationMessages('update'),
-            $this->model->validationNames()
-        );
-        $validated = $validator->validated();
-        if ($validator->fails()) {
-            $formattedError = implode(' ',$validator->errors()->all());
-            throw new TableException($formattedError, 422);
-        } else {
-            $row = $this->find($table, $id);
-
-            // save files
-            $files = [];
-            if (method_exists($row, 'updateFiles')) {
-                $files = $row->updateFiles($request);
-            }
-            $dataWithFiles = array_merge($validator->validated(), $files);
-
-            if (!$row->fill($dataWithFiles)->save()) {
-                // clear uploaded files if error
-                if (method_exists($row, 'clearUpload')) {
-                    $row->clearUpload($files);
+            $validator = Validator::make($request->input(),
+                $rules,
+                $this->model->validationMessages('update'),
+                $this->model->validationNames()
+            );
+            if ($validator->fails()) {
+                $formattedError = implode(' ',$validator->errors()->all());
+                throw new TableException($formattedError, 422);
+            } else {
+                $validated = $validator->validated();
+                // save files
+                $files = [];
+                if (method_exists($row, 'updateFiles')) {
+                    $files = $row->updateFiles($request);
+                }
+                $dataWithFiles = array_merge($validated, $files);
+                // check permissions
+                if ($request->user()->can('update', [$row, $dataWithFiles])) {
+                    if (!$row->fill($dataWithFiles)->save()) {
+                        // clear uploaded files if error
+                        if (method_exists($row, 'clearUpload')) {
+                            $row->clearUpload($files);
+                        }
+                    }
+                    return $row;
+                } else {
+                    throw new PermissionsException('Вам запрещено редактировать записи в '.$this->model->title(), 403);
                 }
             }
-            return $row;
-        }
+
     }
 
     /**
@@ -182,9 +241,9 @@ class TableRepositoryService {
      * @param  Illuminate\Http\Reques $request
      * @param  string $table
      * @param  int|string|null $id
-     * @return TableInterface
+     * @return ?TableInterface
      */
-    public function store(Request $request, string $table, int|string|null $id): TableInterface
+    public function store(Request $request, string $table, int|string|null $id): ?TableInterface
     {
         $this->checks();
         $rules = $this->model->validationRules('store');
@@ -192,7 +251,7 @@ class TableRepositoryService {
         if ($id!=null) {
             $newRules = [];
             foreach($rules as $field=>$rule) {
-                if ($request->has($field)) $newRules[$field] = $rule;
+                if ($request->$field) $newRules[$field] = $rule;
             }
             $rules = $newRules;
         }
@@ -201,37 +260,48 @@ class TableRepositoryService {
             $this->model->validationMessages('store'),
             $this->model->validationNames()
         );
-
         if ($validator->fails()) {
             $formattedError = implode(' ',$validator->errors()->all());
             throw new TableException($formattedError, 422);
         } else {
+            $validatedData = $validator->validated();
             if ($id==null) {
                 // new row
-
-                // save files
-                $files = [];
-                if (method_exists($this->model, 'storeFiles')) {
-                    $files = $this->model->storeFiles($request);
-                }
-                $dataWithFiles = array_merge($validator->validated(), $files);
-
-                // save with loaded files
-                if (!$this->model->fill($dataWithFiles)->save()) {
-                    // clear uploaded files if error
-                    if (method_exists($this->model, 'clearUpload')) {
-                        $this->model->clearUpload($files);
+                // check permissions
+                if ($request->user()->can('create', [$this->model::class, $validatedData])) {
+                    // save files
+                    $files = [];
+                    if (method_exists($this->model, 'storeFiles')) {
+                        $files = $this->model->storeFiles($request);
                     }
+                    $dataWithFiles = array_merge($validatedData, $files);
+
+                    // save with loaded files
+                    if (!$this->model->fill($dataWithFiles)->save()) {
+                        // clear uploaded files if error
+                        if (method_exists($this->model, 'clearUpload')) {
+                            $this->model->clearUpload($files);
+                        }
+                    }
+                    return $this->model;
+                } else {
+                    throw new PermissionsException('Вам запрещено создавать записи в '.$this->model->title(), 403);
                 }
-                $row = $this->model;
             } else {
                 // copy existed row
-                $row = $this->find($table, $id)->replicate();
-                $row->fill($validator->validated());
-                $row->save();
+                $sourceRow = $this->find($table, $id);
+                // check permissions
+                if ($request->user()->can('copy', [$sourceRow, $validatedData])) {
+                    $row = $sourceRow->replicate();
+                    $row->fill($validator->validated());
+                    $row->save();
+                    return $row;
+                } else {
+                    throw new PermissionsException('Вам запрещено копировать запись в '.$this->model->title(), 403);
+                }
             }
-            return $row;
         }
+        return $this->model;
     }
 
     /**
@@ -245,16 +315,20 @@ class TableRepositoryService {
     public function delete(Request $request, string $table, int $id):bool {
         $this->checks();
         $row = $this->find($table, $id);
+        if ($request->user()->can('delete', $row)) {
+            $deleteResult = $row->delete();
 
-        $deleteResult = $row->delete();
-
-        // clear files
-        if ($deleteResult) {
-            if (method_exists($row, 'deleteFiles')) {
-                $row->deleteFiles();
+            // clear files
+            if ($deleteResult) {
+                if (method_exists($row, 'deleteFiles')) {
+                    $row->deleteFiles();
+                }
             }
+            return $deleteResult;
+        } else {
+            throw new PermissionsException('Вам запрещено удалять записи в '.$this->model->title(), 403);
         }
-        return $deleteResult;
+        return false;
     }
 
     /**

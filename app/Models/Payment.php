@@ -30,7 +30,6 @@ class Payment extends Model implements TableInterface
             'amount' => 'numeric|required|min:0',
             'kid_id' => 'integer|nullable',
             'period_id' => 'integer'
-
         ],
         'messages' => [],
     ];

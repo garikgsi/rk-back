@@ -6,20 +6,24 @@ use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Builder;
 use App\Facades\Table;
 use App\Services\TableClasses\TableModel;
+use App\Interfaces\TableInterface;
 
 class TableRequestOrderLimits
 {
     protected Request $request;
     protected Builder $builder;
-    protected TableModel $model;
+    protected TableModel $tableModel;
+    protected TableInterface $model;
     protected int $offset = 0;
     protected int $page = 1;
     protected int $rowsPerPage = 10;
     protected array $orders = [];
 
-    public function __construct(Request $request)
+    public function __construct(Request $request, TableInterface $model)
     {
         $this->request = $request;
+        $this->model = $model;
+        $this->tableModel = $this->model->getFields();
     }
 
     /**
@@ -41,7 +45,6 @@ class TableRequestOrderLimits
      * @return void
      */
     protected function order() {
-        $this->model = Table::use($this->request->table)->getModel()->getFields();
         if ($this->request->has('sort')) {
             // we would use multiple sorting
             // separate sortField and sortOrder by dot(.)
@@ -57,7 +60,7 @@ class TableRequestOrderLimits
         $sortFields = $requestOrder[1];
         $sortOrders = $requestOrder[3];
         foreach($sortFields as $index=>$sortField) {
-            if ($this->model->has($sortField)) {
+            if ($this->tableModel->has($sortField)) {
                 $this->orders[] = [
                     $sortField,
                     isset($sortOrders[$index])&&strtolower($sortOrders[$index])=='desc'?'desc':'asc'

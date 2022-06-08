@@ -38,10 +38,18 @@ class TableTraitTest extends TestCase
      *
      * @return void
      */
-    public function test_empty_rules() {
+    public function test_empty_rules()
+    {
         $testModel = new TestModel();
         $this->assertSame([],$testModel->validationRules());
         $this->assertSame([],$testModel->validationMessages());
+    }
+
+    public function test_get_model_class()
+    {
+        $message = new Message();
+        $this->assertSame($message->getModelClass(),'App\\Models\\Message');
+
     }
 
 }

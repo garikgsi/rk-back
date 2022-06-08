@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Facades\Table;
 use App\Exceptions\TableException;
+use App\Models\Message;
 use Exception;
 
 class TableRepositoryTest extends TestCase
@@ -35,6 +36,18 @@ class TableRepositoryTest extends TestCase
             $this->assertTrue($e instanceof(TableException::class));
         }
         $this->assertTrue(!isset($model));
+    }
+
+    public function test_get_all_data()
+    {
+        $data = Table::use('messages')->getAll();
+        $this->assertSame($data->pluck('id')->values()->all(), Message::get()->pluck('id')->values()->all());
+    }
+
+    public function test_get_all_ids()
+    {
+        $data = Table::use('messages')->getIds();
+        $this->assertSame(Message::get()->pluck('id')->values()->all(), $data);
     }
 
 }

@@ -18,7 +18,8 @@ trait TableOrderLimitsTrait
      */
     public function scopeLimits(Builder $builder, Request $request)
     {
-        $requestLimits = new TableRequestOrderLimits($request);
+        // dd($this);
+        $requestLimits = new TableRequestOrderLimits($request, $this);
         $requestLimits->setOrderLimits($builder);
 
     }

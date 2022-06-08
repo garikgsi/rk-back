@@ -72,4 +72,5 @@ interface TableInterface {
      */
     public function getField(string $name): ?TableField;
 
+    public function getModelClass():string;
 }

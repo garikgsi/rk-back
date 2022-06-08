@@ -11,6 +11,7 @@ use Illuminate\Testing\TestResponse;
 use App\Models\User;
 use Illuminate\Testing\Fluent\AssertableJson;
 use App\Models\Operation;
+use App\Models\Organization;
 use Illuminate\Support\Facades\Storage;
 
 class FilesTest extends TestCase
@@ -22,7 +23,8 @@ class FilesTest extends TestCase
      * @return void
      */
     public function testGetTableFileFields() {
-        $fileFields = Table::use('operations')->getModel()->getFields()->getFileFields();
+        $operations = new Operation();
+        $fileFields = $operations->getFields()->getFileFields();
         $this->assertSame($fileFields[0],'image');
     }
 
@@ -37,9 +39,11 @@ class FilesTest extends TestCase
             'amount' => 200,
             'image' => $file,
         ];
+        $organization = Organization::get()->random();
+        $user = User::find($organization->admin_id);
         $storageFile = $file->hashName();
         $url = "operations";
-        $response = $this->request($url, $data);
+        $response = $this->request($url, $data, $user);
         $response->assertStatus(422)
             ->assertJson([
                 'is_error' => true,
@@ -54,6 +58,9 @@ class FilesTest extends TestCase
      */
     public function testCreateFile():array {
         $storageFiles = [];
+        $organization = Organization::get()->random();
+        $period = $organization->periods->random();
+        $user = User::find($organization->admin_id);
         for($i=0;$i<5; $i++){
             $file = UploadedFile::fake()->image("test$i.jpg");
             $data = [
@@ -63,10 +70,11 @@ class FilesTest extends TestCase
                 'quantity' => 2,
                 'amount' => 200,
                 'image' => $file,
+                'period_id' => $period->id
             ];
             $storageFile = $file->hashName();
             $url = "operations";
-            $response = $this->request($url, $data);
+            $response = $this->request($url, $data, $user);
             $response->assertStatus(201)
                 ->assertJson([
                     'is_error' => false,
@@ -94,7 +102,8 @@ class FilesTest extends TestCase
         ];
         $newFile = $file->hashName();
         $url = "operations/$operation->id";
-        $response = $this->request($url, $data, 'patchJson');
+        $user = User::find($operation->period->organization->admin_id);
+        $response = $this->request($url, $data, $user, 'patchJson');
         $response->assertStatus(200);
         $response->assertJson(function (AssertableJson $json) use($newFile){
             $json->has('data')
@@ -120,7 +129,8 @@ class FilesTest extends TestCase
             'comment' => 'someAnotherComment',
         ];
         $url = "operations/".$fileData['id'];
-        $response = $this->request($url, $data, 'patchJson');
+        $user = User::find($operation->period->organization->admin_id);
+        $response = $this->request($url, $data, $user, 'patchJson');
         $response->assertStatus(200)
             ->assertJson(fn (AssertableJson $json) =>
                 $json->where('is_error', false)
@@ -148,7 +158,8 @@ class FilesTest extends TestCase
             'amount' => 200,
         ];
         $url = "operations/".$fileData['id'];
-        $response = $this->request($url, $data, 'putJson');
+        $user = User::find($operation->period->organization->admin_id);
+        $response = $this->request($url, $data, $user, 'putJson');
         $response->assertStatus(200)
             ->assertJson(fn (AssertableJson $json) =>
                 $json->where('is_error', false)
@@ -170,25 +181,13 @@ class FilesTest extends TestCase
     public function testDeleteFileOnDeleteRow($storageFiles) {
         $storageFile = $storageFiles[1];
         $operation = Operation::where('image', 'like', "%$storageFile%")->first();
+        $user = User::find($operation->period->organization->admin_id);
         Storage::assertExists($storageFile);
         $url = "operations/".$operation->id;
-        $response = $this->request($url, [], 'deleteJson');
+        $response = $this->request($url, [], $user, 'deleteJson');
         $response->assertStatus(204);
         Storage::assertMissing($storageFile);
     }
-
-
-
-    /**
-     * return admin user for request
-     *
-     * @return User
-     */
-    protected function adminUser(): User
-    {
-        return User::whereNotNull('email_verified_at')->first();
-    }
-
 
     /**
      * request put/patch
@@ -197,12 +196,12 @@ class FilesTest extends TestCase
      * @param  array $data
      * @return TestResponse
      */
-    protected function request($url, $data, $method="postJson"):TestResponse
+    protected function request($url, $data, $user, $method="postJson"):TestResponse
     {
         if ($method=='deleteJson') {
-            return $this->actingAs($this->adminUser())->$method("/api/v1/$url");
+            return $this->actingAs($user)->$method("/api/v1/$url");
         } else {
-            return $this->actingAs($this->adminUser())->$method("/api/v1/$url", $data ?: []);
+            return $this->actingAs($user)->$method("/api/v1/$url", $data ?: []);
         }
     }
 }

@@ -10,6 +10,7 @@ use App\Facades\TableModel;
 use App\Traits\TableFilterTrait;
 use App\Traits\TableOrderLimitsTrait;
 use App\Traits\TableTrait;
+use Illuminate\Support\Facades\Auth;
 
 
 class KidParent extends Model implements TableInterface

@@ -29,6 +29,16 @@ trait TableTrait {
     }
 
     /**
+     * getter eloquent model class
+     *
+     * @return string
+     */
+    public function getModelClass(): string
+    {
+        return $this::class;
+    }
+
+    /**
      * title of table
      *
      * @return string

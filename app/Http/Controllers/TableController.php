@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Facades\Table;
+use App\Services\TableRepositoryService;
 use Illuminate\Http\Response;
+use App\Exceptions\PermissionsException;
 
 /**
  * Main API controller for abstract table TableInterface
@@ -19,14 +21,20 @@ class TableController extends Controller
     protected $repository;
 
     /**
+     * resourse class name for model
+     */
+    protected string|null $resourceClassName;
+
+    /**
      * __construct
      *
      * @param  Request $request
      * @return void
      */
-    public function __construct(Request $request)
+    public function __construct(TableRepositoryService $repository)
     {
-        $this->repository = Table::use($request->table);
+        $this->repository = $repository;
+        $this->resourceClassName = $repository->resourceClass();
     }
 
     /**
@@ -36,7 +44,11 @@ class TableController extends Controller
      * @return Illuminate\Http\Response
      */
     public function index(Request $request): Response {
-        return response()->formatApi($this->repository->show($request));
+        $repositoryResponse = $this->repository->get($request);
+        return response()->formatApi([
+            'data' => $this->resourceClassName ? $this->resourceClassName::collection($repositoryResponse['data']) : $repositoryResponse['data']->toArray(),
+            'count' => $repositoryResponse['count'],
+        ]);
     }
 
     /**
@@ -47,9 +59,9 @@ class TableController extends Controller
      * @return Illuminate\Http\Response
      */
     public function show(string $table, $id): Response {
-        // return $this->repository->find($table,(int)$id);
+        $repositoryResponse = $this->repository->find($table,(int)$id);
         return response()->formatApi([
-            'data' => $this->repository->find($table,(int)$id)
+            'data' => $this->resourceClassName ? new $this->resourceClassName($repositoryResponse) : $repositoryResponse->toArray(),
         ]);
     }
 
@@ -62,8 +74,9 @@ class TableController extends Controller
      * @return Response
      */
     public function update(Request $request, string $table, $id): Response {
+        $repositoryResponse = $this->repository->update($request, $table, (int)$id);
         return response()->formatApi([
-            'data' => $this->repository->update($request, $table, (int)$id)
+            'data' => $this->resourceClassName ? new $this->resourceClassName($repositoryResponse) : $repositoryResponse->toArray(),
         ]);
     }
 
@@ -76,8 +89,9 @@ class TableController extends Controller
      * @return Response
      */
     public function store(Request $request, string $table, int|string|null $id=null): Response {
+        $repositoryResponse = $this->repository->store($request, $table, $id);
         return response()->formatApi([
-            'data' => $this->repository->store($request, $table, $id)
+            'data' => $this->resourceClassName ? new $this->resourceClassName($repositoryResponse) : $repositoryResponse->toArray(),
         ], 201);
     }
 
