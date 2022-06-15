@@ -11,6 +11,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use Illuminate\Testing\TestResponse;
+use App\Models\Kid;
+use App\Models\KidParent;
+use App\Models\Plan;
 
 class OperationPolicyTest extends TestCase
 {
@@ -22,7 +25,9 @@ class OperationPolicyTest extends TestCase
     public function testExceptionOnCreatePolicy()
     {
         $user = User::factory()->create();
-        $organization = Organization::whereHas('periods')->get()->random();
+        $organization = Organization::whereHas('periods',function($periods){
+            $periods->whereHas('plans')->whereHas('operations');
+        })->get()->random();
         $period = $organization->periods()->whereHas('plans')->get()->random();
         $plan = $period->plans->random();
         $data = [
@@ -46,7 +51,9 @@ class OperationPolicyTest extends TestCase
     public function testExceptionOnMissingPeriodId()
     {
         $user = User::factory()->create();
-        $organization = Organization::whereHas('periods')->get()->random();
+        $organization = Organization::whereHas('periods',function($periods){
+            $periods->whereHas('plans')->whereHas('operations');
+        })->get()->random();
         $period = $organization->periods()->whereHas('plans')->get()->random();
         $plan = $period->plans->random();
         $data = [
@@ -68,7 +75,9 @@ class OperationPolicyTest extends TestCase
      */
     public function testReturnOkOnCreate()
     {
-        $organization = Organization::whereNotNull('admin_id')->whereHas('periods')->get()->random();
+        $organization = Organization::whereNotNull('admin_id')->whereHas('periods',function($periods){
+            $periods->whereHas('plans')->whereHas('operations');
+        })->get()->random();
         $user = User::find($organization->admin_id);
         $period = $organization->periods()->whereHas('plans')->get()->random();
         $plan = $period->plans->random();
@@ -92,7 +101,9 @@ class OperationPolicyTest extends TestCase
     public function testExceptionOnCopyPolicy()
     {
         $user = User::factory()->create();
-        $organization = Organization::whereHas('periods')->get()->random();
+        $organization = Organization::whereHas('periods',function($periods){
+            $periods->whereHas('plans')->whereHas('operations');
+        })->get()->random();
         $period = $organization->periods()->whereHas('plans')->whereHas('operations')->get()->random();
         $plan = $period->plans->random();
         $operation = $period->operations->random();
@@ -110,7 +121,9 @@ class OperationPolicyTest extends TestCase
      */
     public function testReturnOkOnCopy()
     {
-        $organization = Organization::whereHas('periods')->get()->random();
+        $organization = Organization::whereHas('periods',function($periods){
+            $periods->whereHas('plans')->whereHas('operations');
+        })->get()->random();
         $user = User::find($organization->admin_id);
         $period = $organization->periods()->whereHas('operations')->get()->random();
         $operation = $period->operations->random();
@@ -128,7 +141,9 @@ class OperationPolicyTest extends TestCase
     public function testExceptionOnUpdatePolicy()
     {
         $user = User::factory()->create();
-        $organization = Organization::whereHas('periods')->get()->random();
+        $organization = Organization::whereHas('periods',function($periods){
+            $periods->whereHas('plans')->whereHas('operations');
+        })->get()->random();
         $period = $organization->periods()->whereHas('plans')->whereHas('operations')->get()->random();
         $plan = $period->plans->random();
         $operation = $period->operations->random();
@@ -146,7 +161,9 @@ class OperationPolicyTest extends TestCase
      */
     public function testReturnOkOnUpdate()
     {
-        $organization = Organization::whereHas('periods')->get()->random();
+        $organization = Organization::whereHas('periods',function($periods){
+            $periods->whereHas('plans');
+        })->get()->random();
         $user = User::find($organization->admin_id);
         $period = $organization->periods()->whereHas('operations')->get()->random();
         $operation = $period->operations->random();
@@ -164,7 +181,9 @@ class OperationPolicyTest extends TestCase
     public function testExceptionOnDeletePolicy()
     {
         $user = User::factory()->create();
-        $organization = Organization::whereHas('periods')->get()->random();
+        $organization = Organization::whereHas('periods',function($periods){
+            $periods->whereHas('plans');
+        })->get()->random();
         $period = $organization->periods()->whereHas('plans')->whereHas('operations')->get()->random();
         $plan = $period->plans->random();
         $operation = $period->operations->random();
@@ -179,7 +198,9 @@ class OperationPolicyTest extends TestCase
      */
     public function testReturnOkOnDelete()
     {
-        $organization = Organization::whereHas('periods')->get()->random();
+        $organization = Organization::whereHas('periods',function($periods){
+            $periods->whereHas('plans');
+        })->get()->random();
         $user = User::find($organization->admin_id);
         $period = $organization->periods()->whereHas('operations')->get()->random();
         $operation = $period->operations->random();
@@ -193,9 +214,68 @@ class OperationPolicyTest extends TestCase
      */
     public function testReturnFalseOnForceDelete()
     {
-        $user = User::factory()->create();
+        $user = User::get()->random();
         $operation = Operation::get()->random();
         $this->actingAs($user)->assertFalse($user->can('forceDelete', $operation));
     }
 
+            /**
+     * testDenyAccessToParentWithoutStudyPeriod
+     *
+     * @return array
+     */
+    public function testAllowAccessToParentWithinStudyPeriod():array
+    {
+        $user = User::factory()->create([
+            'name' => 'test'
+        ]);
+        $organization = Organization::get()->random();
+        $period = Period::factory()->create([
+            'start_date' => '2022-01-01',
+            'end_date' => '2022-04-01',
+            'organization_id' => $organization->id,
+        ]);
+        $plan = Plan::factory()->create([
+            'period_id' => $period->id
+        ]);
+        $operation = Operation::factory()->create([
+            'plan_id' => $plan->id
+        ]);
+        $kid = Kid::factory()->create([
+            'start_study' => '2022-01-01',
+            'end_study' => '2022-03-01',
+            'organization_id' => $organization->id
+        ]);
+        $parent = KidParent::factory()->create([
+            'kid_id' => $kid->id,
+            'user_id' => $user->id
+        ]);
+        $parent->user_id = $user->id;
+        $parent->save();
+        $this->assertTrue($user->can('view', $period));
+        $this->actingAs($user)->getJson(uri:"/api/v1/operations/$operation->id")->assertStatus(200);
+        return ['userId'=>$user->id, 'operationId'=>$operation->id, 'kidId'=>$kid->id];
+    }
+
+    /**
+     * testDenyAccessFromController
+     *
+     * @depends testAllowAccessToParentWithinStudyPeriod
+     * @param  mixed $data
+     * @return void
+     */
+    public function testDenyAccessToParentWithoutStudyPeriod($data)
+    {
+        $kid = Kid::find($data['kidId']);
+        $operation = Operation::find($data['operationId']);
+        $user = User::find($data['userId']);
+
+        $kid->start_study = '2022-04-02';
+        $kid->end_study = '2022-12-31';
+        $kid->save();
+
+        $this->expectException(PermissionsException::class);
+        $user->can('view', $operation);
+
+    }
 }

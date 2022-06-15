@@ -32,7 +32,7 @@ class Kid extends Model implements TableInterface
             'patronymic' => 'nullable|string',
             'birthday' => 'nullable|date',
             'start_study' => 'nullable|date',
-            'end_study' => 'nullable|date',
+            'end_study' => 'nullable|date|after:start_study',
             'organization_id' => 'integer|nullable',
         ],
         'messages' => [],

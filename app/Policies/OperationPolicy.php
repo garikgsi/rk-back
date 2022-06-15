@@ -32,7 +32,11 @@ class OperationPolicy
      */
     public function view(User $user, Operation $operation)
     {
-        //
+        $res = $user->can('view',$operation->period);
+        if (!$res) {
+            throw new PermissionsException('Нет разрешений просматривать эту операцию', 403);
+        }
+        return $res;
     }
 
     /**

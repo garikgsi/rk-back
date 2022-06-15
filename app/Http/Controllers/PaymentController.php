@@ -19,9 +19,12 @@ class PaymentController extends Controller
 
     public function show(PaymentRepository $repository, Request $request, $id)
     {
-        return response()->formatApi([
-            'data' => new PaymentResource($repository->find($request, $id))
-        ]);
+        $payment = $repository->find($request, $id);
+        if ($request->user()->can('view',$payment)) {
+            return response()->formatApi([
+                'data' => new PaymentResource($payment)
+            ]);
+        }
     }
 
 }

@@ -28,13 +28,13 @@ class PlanTest extends TestCase
      *
      * @return void
      */
-    public function testoperationRelation()
+    public function testOperationRelation()
     {
-        $operation = Period::whereHas('plans')->get()->random();
-        $plan = $operation->plans->random();
+        $plan = Plan::whereHas('operations')->get()->random();
+        $operation = $plan->operations->random();
         // $operation = Operation::whereNotNull('plan_id')->get()->random();
         // $plan = Plan::find($operation->plan_id);
-        $this->assertTrue($plan->operations->first() instanceof Operation);
+        $this->assertTrue($operation instanceof Operation);
         $this->assertSame($plan->operations->find($operation->id)->toArray(), $operation->toArray());
     }
 

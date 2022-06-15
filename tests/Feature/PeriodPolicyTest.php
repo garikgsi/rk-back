@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Exceptions\PermissionsException;
+use App\Models\Kid;
 use App\Models\Organization;
 use App\Models\Period;
 use App\Models\User;
+use App\Models\KidParent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -24,8 +26,8 @@ class PeriodPolicyTest extends TestCase
         $organization = Organization::get()->random();
         $data = [
             'name' => 'test',
-            'start_date' => date('2021-d-m'),
-            'end_date' => date('2022-d-m'),
+            'start_date' => date('2021-m-d'),
+            'end_date' => date('2022-m-d'),
             'organization_id' => $organization->id,
         ];
         $this->expectException(PermissionsException::class);
@@ -42,8 +44,8 @@ class PeriodPolicyTest extends TestCase
         $user = User::factory()->create();
         $data = [
             'name' => 'test',
-            'start_date' => date('2021-d-m'),
-            'end_date' => date('2022-d-m'),
+            'start_date' => date('2021-m-d'),
+            'end_date' => date('2022-m-d'),
         ];
         $this->expectException(PermissionsException::class);
         $user->can('create', [Period::class, $data]);
@@ -61,8 +63,8 @@ class PeriodPolicyTest extends TestCase
         $period = $organization->periods->random();
         $data = [
             'name' => 'test',
-            'start_date' => date('2021-d-m'),
-            'end_date' => date('2022-d-m'),
+            'start_date' => date('2021-m-d'),
+            'end_date' => date('2022-m-d'),
             'organization_id' => $organization->id,
         ];
         $this->actingAs($user)->postJson(uri:'/api/v1/periods', data:$data)->assertStatus(201);
@@ -94,8 +96,8 @@ class PeriodPolicyTest extends TestCase
         $period = $organization->periods->random();
         $data = [
             'name' => 'test',
-            'start_date' => date('2021-d-m'),
-            'end_date' => date('2022-d-m'),
+            'start_date' => date('2021-m-d'),
+            'end_date' => date('2022-m-d'),
             'organization_id' => $organization->id,
         ];
         $this->actingAs($user)->postJson(uri:"/api/v1/periods/$period->id", data:$data)->assertStatus(201);
@@ -168,9 +170,63 @@ class PeriodPolicyTest extends TestCase
      */
     public function testReturnFalseOnForceDelete()
     {
-        $user = User::factory()->create();
+        $user = User::get()->random();
         $period = Period::get()->random();
         $this->actingAs($user)->assertFalse($user->can('forceDelete', $period));
     }
 
+    /**
+     * testDenyAccessToParentWithoutStudyPeriod
+     *
+     * @return array
+     */
+    public function testAllowAccessToParentWithinStudyPeriod():array
+    {
+        $user = User::factory()->create([
+            'name' => 'test'
+        ]);
+        $organization = Organization::get()->random();
+        $period = Period::factory()->create([
+            'start_date' => '2022-01-01',
+            'end_date' => '2022-04-01',
+            'organization_id' => $organization->id,
+        ]);
+        $kid = Kid::factory()->create([
+            'start_study' => '2022-01-01',
+            'end_study' => '2022-03-01',
+            'organization_id' => $organization->id
+        ]);
+        $parent = KidParent::factory()->create([
+            'kid_id' => $kid->id,
+            'user_id' => $user->id
+        ]);
+        $parent->user_id = $user->id;
+        $parent->save();
+        $this->assertTrue($user->can('view', $period));
+        $this->actingAs($user)->getJson(uri:"/api/v1/periods/$period->id")->assertStatus(200);
+        return ['userId'=>$user->id, 'periodId'=>$period->id, 'kidId'=>$kid->id];
+    }
+
+    /**
+     * testDenyAccessFromController
+     *
+     * @depends testAllowAccessToParentWithinStudyPeriod
+     * @param  mixed $data
+     * @return void
+     */
+    public function testDenyAccessToParentWithoutStudyPeriod($data)
+    {
+        $kid = Kid::find($data['kidId']);
+        $period = Period::find($data['periodId']);
+        $user = User::find($data['userId']);
+
+        $kid->start_study = '2022-04-02';
+        $kid->end_study = '2022-12-31';
+        $kid->save();
+
+        $this->actingAs($user)->getJson(uri:"/api/v1/periods/".$data['periodId'])->assertStatus(403);
+        $this->expectException(PermissionsException::class);
+        $user->can('view', $period);
+
+    }
 }

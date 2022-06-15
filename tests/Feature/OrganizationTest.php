@@ -25,16 +25,23 @@ class OrganizationTest extends TestCase
 
         $admin = Organization::get()->random();
         $user = User::find($admin->admin_id);
-        $kids = KidParent::where('user_id', $user->id)->get()->unique('kid_id')->pluck('kid_id')->values()->all();
-        $organizations = Kid::whereIn('id',$kids)->pluck('organization_id');
-        $adminOrganizations = Organization::where('admin_id',$user->id)->orWhereIn('id',$organizations)->get()->pluck('id');
+        $organizations = Organization::whereHas('parents', function($parents) use ($user) {
+            $parents->where('user_id',$user->id);
+        })->pluck('id')->values();
+        $adminOrganizations = Organization::where('admin_id',$user->id)->orWhereIn('id',$organizations)->pluck('id')->values();
         $allOrganizations = $organizations->merge($adminOrganizations)->unique()->sort()->values()->all();
 
         $response = $this->request($url, $user);
         $response->assertStatus(200);
         $responseData = json_decode($response->getContent())->data;
         $responseOrganizations = collect($responseData)->pluck('id')->sort()->values()->all();
-        $this->assertSame($responseOrganizations, $allOrganizations);
+        try {
+            //code...
+            $this->assertSame($responseOrganizations, $allOrganizations);
+        } catch (\Throwable $th) {
+            //throw $th;
+            dd($user->id, $allOrganizations,$responseData);
+        }
         $this->assertSame(count($responseData), count($allOrganizations));
     }
 
@@ -89,9 +96,15 @@ class OrganizationTest extends TestCase
      */
     public function test_parent_isAdmin()
     {
-        $parent = KidParent::get()->random();
-        $kid = $parent->kid;
-        $organization = $kid->organization;
+        $organization = Organization::whereHas('kids',function($kids){
+            $kids->whereHas('parents');
+        })->get()->random();
+        $kid = $organization->kids->random();
+        $parent = $kid->parents->random();
+        // $parent = KidParent::get()->random();
+        // $kid = $parent->kid;
+        // $organization = $kid->organization;
+
         $organization->admin_id = 0;
         $organization->save;
         $organization->parents()->update(['is_admin'=>false]);

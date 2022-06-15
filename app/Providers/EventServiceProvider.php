@@ -12,6 +12,8 @@ use App\Events\ApiUserRegisterd;
 use App\Events\Invited;
 use App\Listeners\ApiUserRegister;
 use App\Listeners\SendInvite;
+// use App\Observers\PeriodObserver;
+// use App\Models\Period;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -35,6 +37,15 @@ class EventServiceProvider extends ServiceProvider
         ],
     ];
 
+    // /**
+    //  * Наблюдатели моделей вашего приложения.
+    //  *
+    //  * @var array
+    //  */
+    // protected $observers = [
+    //     Period::class => [PeriodObserver::class],
+    // ];
+
     /**
      * Register any events for your application.
      *
@@ -42,7 +53,7 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        // Period::observe(PeriodObserver::class);
     }
 
     /**

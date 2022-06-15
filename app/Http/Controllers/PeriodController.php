@@ -20,9 +20,12 @@ class PeriodController extends Controller
 
     public function show(PeriodRepository $repository, Request $request, $id)
     {
-        return response()->formatApi([
-            'data' => new PeriodResource($repository->find($request, $id))
-        ]);
+        $period = $repository->find($request, $id);
+        if ($request->user()->can('view',$period)) {
+            return response()->formatApi([
+                'data' => new PeriodResource($period)
+            ]);
+        }
     }
 
 }

@@ -30,9 +30,10 @@ class PaymentTest extends TestCase
      */
     public function testKidRelation()
     {
-        $payment = Payment::whereNotNull('kid_id')->get()->random();
+        $kid = Kid::whereHas('payments')->get()->random();
+        $payment = $kid->payments->random();
         $this->assertTrue($payment->kid instanceof Kid);
-        $this->assertSame($payment->kid->toArray(), Kid::find($payment->kid_id)->toArray());
+        $this->assertSame($payment->kid->id, $kid->id);
     }
 
     /**

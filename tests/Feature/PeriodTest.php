@@ -32,9 +32,12 @@ class PeriodTest extends TestCase
      */
     public function testPlanRelation()
     {
-        $plan = Plan::whereNotNull('period_id')->get()->random();
-        $period = Period::find($plan->period_id);
-        $this->assertTrue($period->plans->first() instanceof Plan);
+        $period = Period::whereHas('plans')->get()->random();
+        $plan = $period->plans->random();
+
+        // $plan = Plan::whereNotNull('period_id')->get()->random();
+        // $period = Period::find($plan->period_id);
+        $this->assertTrue($plan instanceof Plan);
         $this->assertSame($period->plans->find($plan->id)->toArray(), $plan->toArray());
     }
 

@@ -11,6 +11,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use Illuminate\Testing\TestResponse;
+use App\Models\Kid;
+use App\Models\KidParent;
 
 class PaymentPolicyTest extends TestCase
 {
@@ -85,7 +87,9 @@ class PaymentPolicyTest extends TestCase
     public function testExceptionOnCopyPolicy()
     {
         $user = User::factory()->create();
-        $organization = Organization::whereHas('periods')->whereHas('kids')->whereNotNull('admin_id')->get()->random();
+        $organization = Organization::whereHas('periods',function($periods){
+            $periods->whereHas('payments');
+        })->whereHas('kids')->whereNotNull('admin_id')->get()->random();
         $period = $organization->periods()->whereHas('payments')->get()->random();
         $payment = $period->payments->random();
         $this->expectException(PermissionsException::class);
@@ -99,7 +103,9 @@ class PaymentPolicyTest extends TestCase
      */
     public function testReturnOkOnCopy()
     {
-        $organization = Organization::whereHas('periods')->whereHas('kids')->whereNotNull('admin_id')->get()->random();
+        $organization = Organization::whereHas('periods',function($periods){
+            $periods->whereHas('payments');
+        })->whereHas('kids')->whereNotNull('admin_id')->get()->random();
         $user = User::find($organization->admin_id);
         $period = $organization->periods()->whereHas('payments')->get()->random();
         $payment = $period->payments->random();
@@ -117,7 +123,9 @@ class PaymentPolicyTest extends TestCase
     public function testExceptionOnUpdatePolicy()
     {
         $user = User::factory()->create();
-        $organization = Organization::whereHas('periods')->whereHas('kids')->whereNotNull('admin_id')->get()->random();
+        $organization = Organization::whereHas('periods',function($periods){
+            $periods->whereHas('payments');
+        })->whereHas('kids')->whereNotNull('admin_id')->get()->random();
         $period = $organization->periods()->whereHas('payments')->get()->random();
         $payment = $period->payments->random();
         $this->expectException(PermissionsException::class);
@@ -131,7 +139,9 @@ class PaymentPolicyTest extends TestCase
      */
     public function testReturnOkOnUpdate()
     {
-        $organization = Organization::whereHas('periods')->whereHas('kids')->whereNotNull('admin_id')->get()->random();
+        $organization = Organization::whereHas('periods',function($periods){
+            $periods->whereHas('payments');
+        })->whereHas('kids')->whereNotNull('admin_id')->get()->random();
         $user = User::find($organization->admin_id);
         $period = $organization->periods()->whereHas('payments')->get()->random();
         $payment = $period->payments->random();
@@ -149,7 +159,9 @@ class PaymentPolicyTest extends TestCase
     public function testExceptionOnDeletePolicy()
     {
         $user = User::factory()->create();
-        $organization = Organization::whereHas('periods')->whereHas('kids')->whereNotNull('admin_id')->get()->random();
+        $organization = Organization::whereHas('periods',function($periods){
+            $periods->whereHas('payments');
+        })->whereHas('kids')->whereNotNull('admin_id')->get()->random();
         $period = $organization->periods()->whereHas('payments')->get()->random();
         $payment = $period->payments->random();
         $this->expectException(PermissionsException::class);
@@ -163,7 +175,9 @@ class PaymentPolicyTest extends TestCase
      */
     public function testReturnOkOnDelete()
     {
-        $organization = Organization::whereHas('periods')->whereHas('kids')->whereNotNull('admin_id')->get()->random();
+        $organization = Organization::whereHas('periods',function($periods){
+            $periods->whereHas('payments');
+        })->whereHas('kids')->whereNotNull('admin_id')->get()->random();
         $user = User::find($organization->admin_id);
         $period = $organization->periods()->whereHas('payments')->get()->random();
         $payment = $period->payments->random();
@@ -180,9 +194,68 @@ class PaymentPolicyTest extends TestCase
      */
     public function testReturnFalseOnForceDelete()
     {
-        $user = User::factory()->create();
+        $user = User::get()->random();
         $payment = Payment::get()->random();
         $this->actingAs($user)->assertFalse($user->can('forceDelete', $payment));
     }
+
+    /**
+     * testDenyAccessToParentWithoutStudyPeriod
+     *
+     * @return array
+     */
+    public function testAllowAccessToParentWithinStudyPeriod():array
+    {
+        $user = User::factory()->create([
+            'name' => 'test'
+        ]);
+        $organization = Organization::get()->random();
+        $period = Period::factory()->create([
+            'start_date' => '2022-01-01',
+            'end_date' => '2022-04-01',
+            'organization_id' => $organization->id,
+        ]);
+        $payment = Payment::factory()->create([
+            'period_id' => $period->id
+        ]);
+        $kid = Kid::factory()->create([
+            'start_study' => '2022-01-01',
+            'end_study' => '2022-03-01',
+            'organization_id' => $organization->id
+        ]);
+        $parent = KidParent::factory()->create([
+            'kid_id' => $kid->id,
+            'user_id' => $user->id
+        ]);
+        $parent->user_id = $user->id;
+        $parent->save();
+        $this->assertTrue($user->can('view', $period));
+        $this->actingAs($user)->getJson(uri:"/api/v1/payments/$payment->id")->assertStatus(200);
+        return ['userId'=>$user->id, 'paymentId'=>$payment->id, 'kidId'=>$kid->id];
+    }
+
+    /**
+     * testDenyAccessFromController
+     *
+     * @depends testAllowAccessToParentWithinStudyPeriod
+     * @param  mixed $data
+     * @return void
+     */
+    public function testDenyAccessToParentWithoutStudyPeriod($data)
+    {
+        $kid = Kid::find($data['kidId']);
+        $payment = Payment::find($data['paymentId']);
+        $user = User::find($data['userId']);
+
+        $kid->start_study = '2022-04-02';
+        $kid->end_study = '2022-12-31';
+        $kid->save();
+
+        $this->actingAs($user)->getJson(uri:"/api/v1/payments/$payment->id")->assertStatus(403);
+        $this->expectException(PermissionsException::class);
+        $user->can('view', $payment);
+
+    }
+
 
 }

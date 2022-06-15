@@ -32,7 +32,11 @@ class PlanPolicy
      */
     public function view(User $user, Plan $plan)
     {
-        //
+        $res = $user->can('view',$plan->period);
+        if (!$res) {
+            throw new PermissionsException('Нет разрешений просматривать эту запись планирования', 403);
+        }
+        return $res;
     }
 
     /**

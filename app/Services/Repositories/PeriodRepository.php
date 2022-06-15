@@ -9,10 +9,6 @@ use Illuminate\Http\Request;
 class PeriodRepository extends TableRepositoryService
 {
     /**
-     * current request
-     */
-    protected Request $request;
-    /**
      * use personal constructor with specified fill repository data
      *
      * @param  OrganizationRepository $organizations

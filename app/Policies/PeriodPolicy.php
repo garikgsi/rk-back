@@ -32,7 +32,22 @@ class PeriodPolicy
      */
     public function view(User $user, Period $period)
     {
-        //
+        $res = Organization::where('admin_id', $user->id)
+            ->orWhereHas('periods',function($periods) use ($period){
+                $periods->where('id',$period->id);
+            })
+            ->whereHas('kids',function($kids) use ($period, $user) {
+                $kids->whereHas('parents',function($parents) use ($user){
+                        $parents->where('user_id', $user->id);
+                    })->where(function($query) use ($period){
+                        $query->orwhereBetween('end_study',[$period->start_date, $period->end_date])
+                        ->orWhereBetween('start_study',[$period->start_date, $period->end_date]);
+                    });
+            })->count()>0;
+        if (!$res) {
+            throw new PermissionsException('Нет разрешений просматривать этот период', 403);
+        }
+        return $res;
     }
 
     /**

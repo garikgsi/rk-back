@@ -32,7 +32,11 @@ class PaymentPolicy
      */
     public function view(User $user, Payment $payment)
     {
-        //
+        $res = $user->can('view',$payment->period);
+        if (!$res) {
+            throw new PermissionsException('Нет разрешений просматривать это поступление', 403);
+        }
+        return $res;
     }
 
     /**

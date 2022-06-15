@@ -19,7 +19,10 @@ class PlanController extends Controller
 
     public function show(PlanRepository $repository, Request $request, $id)
     {
-        return response()->formatApi([
-            'data' => new PlanResource($repository->find($request, $id))
-        ]);
+        $plan = $repository->find($request, $id);
+        if ($request->user()->can('view',$plan)) {
+            return response()->formatApi([
+                'data' => new PlanResource($plan)
+            ]);
+        }
     }}

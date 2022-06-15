@@ -15,30 +15,21 @@ class OrganizationRepository extends TableRepositoryService {
      * current user
      */
     protected User $user;
-    /**
-     * current request
-     */
-    protected Request $request;
-
-    // protected Builder $repository;
 
     /**
      * use personal constructor with specified fill repository data
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(Request $request)
     {
         $this->user = Auth::user();
         $this->use('organizations');
         $this->fillRepository($this->user
             ?
-            Organization::where(function($query) {
-                $query->where('admin_id',$this->user->id)
-                    ->orWhereHas('parents', function($parents){
-                        $parents->where('user_id',$this->user->id);
-                    });
-                })
+            Organization::where('admin_id',$this->user->id)->orWhereHas('parents', function($parents) {
+                $parents->where('user_id',$this->user->id);
+            })
             :
             Organization::where('id',null));
     }

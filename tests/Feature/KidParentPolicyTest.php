@@ -186,7 +186,7 @@ class KidParentPolicyTest extends TestCase
      */
     public function testReturnFalseOnForceDelete()
     {
-        $user = User::factory()->create();
+        $user = User::get()->random();
         $parent = KidParent::get()->random();
         $this->actingAs($user)->assertFalse($user->can('forceDelete', $parent));
     }

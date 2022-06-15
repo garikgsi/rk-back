@@ -19,8 +19,11 @@ class OperationController extends Controller
 
     public function show(OperationRepository $repository, Request $request, $id)
     {
-        return response()->formatApi([
-            'data' => new OperationResource($repository->find($request, $id))
-        ]);
+        $operation = $repository->find($request, $id);
+        if ($request->user()->can('view',$operation)) {
+            return response()->formatApi([
+                'data' => new OperationResource($operation)
+            ]);
+        }
     }
 }
