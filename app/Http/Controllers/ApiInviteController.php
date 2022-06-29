@@ -14,11 +14,9 @@ class ApiInviteController extends Controller
         $validator = Validator::make($request->input(),
         [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => 'required|string|email|max:255',
         ],
-        [
-            'email.unique' => 'Пользователь c электронной почтой :input уже приглашен'
-        ],
+        [],
         [
             'name' => 'ФИО пользователя',
             'email' => 'Электронная почта',
@@ -28,9 +26,17 @@ class ApiInviteController extends Controller
             throw new RegisterException($formattedError, 422);
         } else {
             $userData = $validator->validated();
-            $invitedUser = UserApiRegistration::inviteUser(user:$request->user(), name:$userData['name'] ,email:$userData['email']);
-            event(new Invited($invitedUser));
-            return response()->formatApi([], 201);
+            // check existed user
+            try {
+                // user exists
+                $user = UserApiRegistration::findByEmail(email:$userData['email']);
+                return response()->formatApi(['data' => $user], 200);
+            } catch (\Throwable $th) {
+                // created user
+                $invitedUser = UserApiRegistration::inviteUser(user:$request->user(), name:$userData['name'] ,email:$userData['email']);
+                event(new Invited($invitedUser));
+                return response()->formatApi(['data' => $invitedUser], 201);
+            }
         }
     }
 }

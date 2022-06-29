@@ -423,10 +423,10 @@ class ApiRegistrationServiceTest extends TestCase
             'email' => $user->email,
         ];
         $response = $this->request($url, 'post', $postData, true);
-        $response->assertStatus(422);
+        $response->assertStatus(200);
         $response->assertJson(function (AssertableJson $json) use ($user){
-            $json->where('is_error', true)
-            ->where('error',"Пользователь c электронной почтой $user->email уже приглашен")
+            $json->where('is_error', false)
+            ->where('data.id',$user->id)
             ->etc();
         });
 
