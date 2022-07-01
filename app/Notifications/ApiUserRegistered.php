@@ -45,7 +45,7 @@ class ApiUserRegistered extends Notification
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->from('admin@test.com', 'Ваш личный почтальон')
+            ->from(config('mail.from.address'), 'Ваш личный почтальон')
             ->subject('Ваш код для подтверждения регистрации')
             ->greeting('Здравствуйте!')
             ->line('Для подтверждения регистрации на сайте необходимо ввести при первой авторизации следующий код: ')

@@ -47,7 +47,7 @@ class RegCode extends Notification
         $codeValidDate = Carbon::createFromFormat('Y-m-d H:i:s', $this->user->code_expired);
         $codeValidDate->tz('Europe/Moscow');
         return (new MailMessage)
-            ->from('admin@test.com', 'Ваш личный почтальон')
+            ->from(config('mail.from.address'), 'Ваш личный почтальон')
             ->subject('Новый проверочный код')
             ->greeting('Здравствуйте!')
             ->line('Мы сгенерировали для Вас новый код подтверждения:')

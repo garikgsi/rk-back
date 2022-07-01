@@ -52,7 +52,7 @@ class InviteNotification extends Notification
 
         return (new MailMessage)
             // ->from(config('mail.from.address'), $inviter->name)
-            ->from($inviter->email, $inviter->name)
+            ->from(config('mail.from.address'), $inviter->name)
             ->subject("$user->name, присоединяйтесь к родительскому комитету!")
             ->greeting("Здравствуйте, $user->name!")
             ->line("$inviter->name приглашает Вас зарегистрироваться на сервисе родительского комитета и получить актуальные сведения и полный доступ к ресурсам приложения")
