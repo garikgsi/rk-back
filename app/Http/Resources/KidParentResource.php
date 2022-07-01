@@ -22,6 +22,7 @@ class KidParentResource extends JsonResource
             'phone' => $this->phone,
             'kid_id' => $this->kid_id,
             'user_id' => $this->user_id,
+            'email' => $this->user ? $this->user->email : null,
             'is_admin' => $this->is_admin,
             'organization_id' => $this->kid->organization->id,
         ];
