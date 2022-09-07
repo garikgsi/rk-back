@@ -70,6 +70,15 @@ class Organization extends Model implements TableInterface
     }
 
     /**
+     * all organization operations
+     *
+     * @return void
+     */
+    public function operations() {
+        return $this->hasManyThrough(Operation::class, Period::class);
+    }
+
+    /**
      * all organization plans
      *
      * @return void

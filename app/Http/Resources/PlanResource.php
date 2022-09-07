@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Carbon\Carbon;
 
 class PlanResource extends JsonResource
 {
@@ -21,6 +22,7 @@ class PlanResource extends JsonResource
             'quantity'=>$this->quantity,
             'amount'=>$this->amount,
             'period_id'=>$this->period_id,
+            'created_at'=>$this->created_at->format('Y-m-d')
         ];
     }
 }

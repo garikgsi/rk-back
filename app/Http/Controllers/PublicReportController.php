@@ -37,6 +37,7 @@ class PublicReportController extends Controller
                 // period operations
                 $operations = $period->operations()->get();
                 $sumOperations = $operations->sum('amount');
+                $oragnizationOperations = $organization->operations;
 
                 // period plans
                 $periodPlans = $period->plans;
@@ -49,10 +50,11 @@ class PublicReportController extends Controller
                 // debt for start period
                 $earlyPeriods = $organizationPeriods->where('id','<',$period->id)->pluck('id')->values();
                 // $earlyPeriods = $organizationPeriods->whereDate('end_date','<',$period->start_date)->get()->pluck('id')->values();
+                $earlyOperations = $oragnizationOperations->whereIn('period_id',$earlyPeriods)->sum('amount');
                 $startDebt = $organizationPayments->whereIn('period_id',$earlyPeriods)->whereNotNull('kid_id')->sum('amount') - $oragnizationPlans->whereIn('period_id',$earlyPeriods)->sum('amount');
                 $earlyCashback = $organizationPayments->whereIn('period_id',$earlyPeriods)->whereNull('kid_id')->sum('amount');
                 $currentCashback = $periodPayments->whereNull('kid_id')->sum('amount');
-                $startSaldo = $startDebt + $earlyCashback + $currentCashback;
+                $startSaldo = $startDebt + $earlyCashback + $currentCashback - $earlyOperations;
                 // return report data
                 return response()->formatApi([
                     'data' => [
