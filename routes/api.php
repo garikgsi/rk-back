@@ -16,6 +16,7 @@ use App\Http\Controllers\KidParentController;
 use App\Http\Controllers\OperationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PlanController;
+use App\Http\Middleware\DenyDemoUser;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,16 +34,21 @@ Route::prefix('v1')
         /**
          * tokens api
          */
-        Route::prefix('auth')->middleware(['throttle:check_code'])
+        // Route::prefix('auth')->middleware(['denyDemoUser'])
+        Route::prefix('auth')->middleware(['throttle:check_code','denyDemoUser'])
         ->group(function(){
-            Route::post('/token', [TokenController::class, 'authToken']);
+            Route::withoutMiddleware([DenyDemoUser::class])->group(function(){
+                Route::post('/token', [TokenController::class, 'authToken']);
+            });
             Route::post('/register',[ApiRegisterController::class, 'register']);
             Route::post('/confirm_registration',[ApiConfirmRegistrationController::class, 'confirmRegistration']);
             Route::post('/new_code',[ApiSendNewCodeController::class, 'createCode']);
             Route::post('/restore_password',[ApiRestorePasswordController::class, 'restorePassword']);
-            Route::middleware('auth:sanctum')
+            Route::middleware(['auth:sanctum'])
             ->group(function() {
-                Route::get('/user', [TokenController::class,'user']);
+                Route::withoutMiddleware([DenyDemoUser::class])->group(function(){
+                    Route::get('/user', [TokenController::class,'user']);
+                });
                 Route::get('/tokens', [TokenController::class,'getTokens']);
                 Route::post('/tokens', [TokenController::class, 'createToken']);
                 Route::delete('/tokens',[TokenController::class, 'revokeAllTokens']);
@@ -82,11 +88,13 @@ Route::prefix('v1')
          * basic api
          */
         // Route::middleware(['validation'])
-        Route::middleware(['auth:sanctum','validation'])
+        Route::middleware(['auth:sanctum','validation','denyDemoUser'])
         ->group(function () {
-            Route::get('/{table}',[TableController::class,'index']);
+            Route::withoutMiddleware([DenyDemoUser::class])->group(function(){
+                Route::get('/{table}',[TableController::class,'index']);
+                Route::get('/{table}/{id}',[TableController::class,'show']);
+            });
             Route::post('/{table}/{id?}',[TableController::class,'store']);
-            Route::get('/{table}/{id}',[TableController::class,'show']);
             Route::put('/{table}/{id}',[TableController::class,'update']);
             Route::patch('/{table}/{id}',[TableController::class,'update']);
             Route::delete('/{table}/{id}',[TableController::class,'delete']);

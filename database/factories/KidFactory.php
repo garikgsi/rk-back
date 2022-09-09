@@ -16,12 +16,14 @@ class KidFactory extends Factory
      */
     public function definition()
     {
+        $sexArray = ['male', 'female'];
+        $sex = $this->faker->randomElement($sexArray);
+        $year = date('Y');
         return [
-            'name' => $this->faker->firstName(),
-            'last_name' => $this->faker->lastName(),
-            'patronymic' => $this->faker->middleName(),
-            'birthday' => $this->faker->date(),
-            'start_study' => $this->faker->date('Y-m-d'),
+            'birthday' => $this->faker->dateTimeBetween('2014-01-01 00:00:00', '2014-12-31 00:00:00'),
+            'name' => $this->faker->firstName($sex),
+            'last_name' => $this->faker->lastName($sex),
+            'patronymic' => $this->faker->middleName($sex),
         ];
     }
 }

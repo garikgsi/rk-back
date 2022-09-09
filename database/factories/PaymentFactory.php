@@ -10,6 +10,12 @@ use App\Models\Period;
  */
 class PaymentFactory extends Factory
 {
+    private $comments = [
+        'Перевод на карту',
+        'Наличка',
+        'Сбербанк-онлайн'
+    ];
+
     /**
      * Define the model's default state.
      *
@@ -19,7 +25,7 @@ class PaymentFactory extends Factory
     {
         return [
             'date_payment'=> $this->faker->date(),
-            'comment' => mb_substr($this->faker->realText(),0,rand(10,30)),
+            'comment' => $this->faker->randomElement($this->comments),
             'amount' =>$this->faker->randomFloat(0,600,6000),
             'period_id'=>Period::get()->random()->id,
         ];

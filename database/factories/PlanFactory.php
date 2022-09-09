@@ -10,6 +10,12 @@ use App\Models\Plan;
  */
 class PlanFactory extends Factory
 {
+    private $plans = [
+        'Новый год','День рождения','8 марта','23 февраля','День учителя','Конец года','Канцелярка','Туалетная бумага','Вода',
+        'Учебники','Рабочие тетради','Краски,карандаши','Альбомы','Скакалки','Картриджи','Мыло','Салфетки','Экскурсия','Тетради',
+        'Коврики','Воздушные шары','Начало уч.года',
+    ];
+
     /**
      * Define the model's default state.
      *
@@ -17,24 +23,14 @@ class PlanFactory extends Factory
      */
     public function definition()
     {
+        $price = $this->faker->randomFloat(2,200,2000);
+        $quantity = $this->faker->randomFloat(0,1,30);
+        $amount = round($price*$quantity,2);
         return [
-            'title' => mb_substr($this->faker->realText(),0,rand(20,50)),
-            'price' =>$this->faker->randomFloat(0,200,2000),
-            'quantity' =>$this->faker->randomFloat(0,1,30),
-            'amount' =>$this->faker->randomFloat(0,600,6000),
+            'title' => $this->faker->randomElement($this->plans),
+            'price' =>$price,
+            'quantity' =>$quantity,
+            'amount' =>$amount,
         ];
-    }
-
-    /**
-     * Конфигурация фабрики модели.
-     *
-     * @return $this
-     */
-    public function configure()
-    {
-        return $this->afterCreating(function (Plan $plan) {
-            $plan->amount = $plan->price*$plan->quantity;
-            $plan->save();
-        });
     }
 }

@@ -1,10 +1,10 @@
 ## О проекте
 
-Разработка REST API на базе Laravel 9
+Разработка Backend для сервиса Родительский комитет
 
-## Время разработки
+## Время разработки API
 
-Согласно трекеру: TOTAL HOURS 15:30:45
+Без бизнес-логики - согласно трекеру: TOTAL HOURS 15:30:45
 
 ## Качество кода
 
@@ -12,5 +12,5 @@
 
 ## Примененные технологии
 
-PHP 8.0 | Composer | Patterns | MVC | PHPUnit | Git | MySql
-Laravel: Service | Facade | Eloquent | Route | Auth | Middleware | Validation | Exceptions
+PHP 8.0 | Composer | MVC | PHPUnit | Git | MySql
+Laravel9: Service | Facade | Eloquent | Route | Auth | Middleware | Validation | Exceptions
