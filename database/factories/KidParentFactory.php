@@ -18,10 +18,12 @@ class KidParentFactory extends Factory
      */
     public function definition()
     {
+        $sexArray = ['male', 'female'];
+        $sex = $this->faker->randomElement($sexArray);
         return [
-            'name' => $this->faker->firstName(),
-            'last_name' => $this->faker->lastName(),
-            'patronymic' => $this->faker->middleName(),
+            'name' => $this->faker->firstName($sex),
+            'last_name' => $this->faker->lastName($sex),
+            'patronymic' => $this->faker->middleName($sex),
             'phone' => $this->faker->phoneNumber(),
             'is_admin' => $this->faker->randomDigit()==3 ? true : false,
         ];
@@ -37,7 +39,9 @@ class KidParentFactory extends Factory
         return $this->state(function (array $attributes) {
             return [
                 'name' => $this->faker->firstName('male'),
-            ];
+                'last_name' => $this->faker->lastName('male'),
+                'patronymic' => $this->faker->middleName('male'),
+                ];
         });
     }
     /**
@@ -50,25 +54,27 @@ class KidParentFactory extends Factory
         return $this->state(function (array $attributes) {
             return [
                 'name' => $this->faker->firstName('female'),
+                'last_name' => $this->faker->lastName('female'),
+                'patronymic' => $this->faker->middleName('female'),
             ];
         });
     }
 
 
-    /**
-     * Конфигурация фабрики модели.
-     *
-     * @return $this
-     */
-    public function configure()
-    {
-        return $this->afterCreating(function (KidParent $kidParent) {
-            $users = User::withCount('kidParent')->get()->where('kid_parent_count','<',2);
-            if ($users->count()>0) {
-                $user = $users->random();
-                $kidParent->user_id = $user->id;
-                $kidParent->save();
-            }
-        });
-    }
+    // /**
+    //  * Конфигурация фабрики модели.
+    //  *
+    //  * @return $this
+    //  */
+    // public function configure()
+    // {
+    //     return $this->afterCreating(function (KidParent $kidParent) {
+    //         $users = User::withCount('kidParent')->get()->where('kid_parent_count','<',2);
+    //         if ($users->count()>0) {
+    //             $user = $users->random();
+    //             $kidParent->user_id = $user->id;
+    //             $kidParent->save();
+    //         }
+    //     });
+    // }
 }

@@ -49,12 +49,19 @@ class PublicReportController extends Controller
 
                 // debt for start period
                 $earlyPeriods = $organizationPeriods->where('id','<',$period->id)->pluck('id')->values();
-                // $earlyPeriods = $organizationPeriods->whereDate('end_date','<',$period->start_date)->get()->pluck('id')->values();
                 $earlyOperations = $oragnizationOperations->whereIn('period_id',$earlyPeriods)->sum('amount');
-                $startDebt = $organizationPayments->whereIn('period_id',$earlyPeriods)->whereNotNull('kid_id')->sum('amount') - $oragnizationPlans->whereIn('period_id',$earlyPeriods)->sum('amount');
+                $earlyPayments = $organizationPayments->whereIn('period_id',$earlyPeriods)->whereNotNull('kid_id')->sum('amount');
+                $earlyPlans = $oragnizationPlans->whereIn('period_id',$earlyPeriods)->sum('amount');
+                $startDebt = $earlyPayments - $earlyPlans;
+                // $startDebt = $organizationPayments->whereIn('period_id',$earlyPeriods)->whereNotNull('kid_id')->sum('amount') - $oragnizationPlans->whereIn('period_id',$earlyPeriods)->sum('amount');
                 $earlyCashback = $organizationPayments->whereIn('period_id',$earlyPeriods)->whereNull('kid_id')->sum('amount');
                 $currentCashback = $periodPayments->whereNull('kid_id')->sum('amount');
-                $startSaldo = $startDebt + $earlyCashback + $currentCashback - $earlyOperations;
+                $currentPayments = $organizationPayments->whereIn('period_id',$period->id)->whereNotNull('kid_id')->sum('amount');
+                $currentOperations = $oragnizationOperations->whereIn('period_id',$period->id)->sum('amount');
+
+                $startSaldo = $earlyPayments - $earlyOperations + $earlyCashback;
+                $currentSaldo = $startSaldo + $currentCashback + $currentPayments - $currentOperations;
+                // $startSaldo = $startDebt + $earlyCashback + $currentCashback - $earlyOperations;
                 // return report data
                 return response()->formatApi([
                     'data' => [
@@ -67,7 +74,8 @@ class PublicReportController extends Controller
                             'plans' => round($sumPlans,2),
                             'payments' => round($sumPayments,2),
                             'startDebt' => round($startDebt,2),
-                            'startSaldo' => round($startSaldo,2)
+                            'startSaldo' => round($startSaldo,2),
+                            'currentSaldo' => round($currentSaldo,2)
                         ],
                     ]
                 ]);
