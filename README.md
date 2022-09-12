@@ -1,6 +1,6 @@
 ## О проекте
 
-Разработка Backend для сервиса Родительский комитет
+BAckend сервиса Родительский комитет (некоммерческий проект)
 Сайт и демо - https://rk.tcu.su
 (frontend https://github.com/garikgsi/rk-front)
 
