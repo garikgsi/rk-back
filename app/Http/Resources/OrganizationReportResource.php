@@ -4,16 +4,8 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PeriodReportResource extends JsonResource
+class OrganizationReportResource extends JsonResource
 {
-    /**
-     * Resource using to format collection
-     *
-     * @var string
-     */
-    public $collects = Period::class;
-
-
     /**
      * Transform the resource into an array.
      *
@@ -24,9 +16,8 @@ class PeriodReportResource extends JsonResource
     {
         return [
             'id'=>$this->id,
-            'name'=>$this->name,
-            'start_period'=>$this->start_period,
-            'end_period'=>$this->end_period
+            'title' => $this->title,
+            'slug'=>$this->slug,
         ];
     }
 }

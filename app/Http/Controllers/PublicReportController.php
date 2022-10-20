@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Resources\OperationReportResource;
 use App\Http\Resources\PeriodReportResource;
 use App\Http\Resources\PlanReportResource;
+use App\Http\Resources\OrganizationReportResource;
 use App\Models\Organization;
 use App\Exceptions\TableException;
 
@@ -65,6 +66,7 @@ class PublicReportController extends Controller
                 // return report data
                 return response()->formatApi([
                     'data' => [
+                        'organization' => new OrganizationReportResource($organization),
                         'current_period' => new PeriodReportResource($period),
                         'operations' => OperationReportResource::collection($operations),
                         'plans'=> PlanReportResource::collection($periodPlans),
