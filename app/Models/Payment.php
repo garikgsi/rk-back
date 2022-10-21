@@ -34,6 +34,12 @@ class Payment extends Model implements TableInterface
         'messages' => [],
     ];
 
+
+    protected $casts = [
+        'amount' => 'float',
+    ];
+
+
     /**
      * __construct
      *

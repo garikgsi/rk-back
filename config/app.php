@@ -4,6 +4,11 @@ use Illuminate\Support\Facades\Facade;
 
 return [
 
+    /**
+     * develop mode
+     */
+    'isDevelop' => env('IS_DEVELOP', false),
+
     /*
     |--------------------------------------------------------------------------
     | Application Name

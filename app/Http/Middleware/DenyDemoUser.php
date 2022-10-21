@@ -16,21 +16,22 @@ class DenyDemoUser
      */
     public function handle(Request $request, Closure $next)
     {
-        $user = $request->user();
-        if ($user) {
-            if ($request->user()->email=='demo@example.com') {
-                return response()->formatApi([
-                    'error' => 'Данная операция запрещена для демо-пользователя'
-                ], 421);
-            }
-        } else {
-            if ($request->has('email') && $request->email == 'demo@example.com') {
-                return response()->formatApi([
-                    'error' => 'Невозможно обработать демо-запрос'
-                ], 421);
+        if (config('app.isDevelop')===false) {
+            $user = $request->user();
+            if ($user) {
+                if ($request->user()->email=='demo@example.com') {
+                    return response()->formatApi([
+                        'error' => 'Данная операция запрещена для демо-пользователя'
+                    ], 421);
+                }
+            } else {
+                if ($request->has('email') && $request->email == 'demo@example.com') {
+                    return response()->formatApi([
+                        'error' => 'Невозможно обработать демо-запрос'
+                    ], 421);
+                }
             }
         }
-
 
         return $next($request);
     }

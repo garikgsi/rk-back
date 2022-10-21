@@ -43,9 +43,11 @@ class Operation extends Model implements TableInterface
     ];
 
     protected $casts = [
-        'image' => File::class
+        'image' => File::class,
+        'price' => 'float',
+        'quantity' => 'float',
+        'amount' => 'float',
     ];
-
     /**
      * __construct
      *

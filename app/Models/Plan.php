@@ -34,6 +34,12 @@ class Plan extends Model implements TableInterface
         'messages' => [],
     ];
 
+    protected $casts = [
+        'price' => 'float',
+        'quantity' => 'float',
+        'amount' => 'float',
+    ];
+
     /**
      * __construct
      *
