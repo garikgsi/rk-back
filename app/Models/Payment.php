@@ -37,6 +37,8 @@ class Payment extends Model implements TableInterface
 
     protected $casts = [
         'amount' => 'float',
+        'kid_id' => 'integer',
+        'period_id' => 'integer',
     ];
 
 

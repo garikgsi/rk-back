@@ -38,6 +38,8 @@ class Plan extends Model implements TableInterface
         'price' => 'float',
         'quantity' => 'float',
         'amount' => 'float',
+        'period_id' => 'integer',
+
     ];
 
     /**

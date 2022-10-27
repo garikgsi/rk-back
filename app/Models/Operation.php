@@ -47,6 +47,9 @@ class Operation extends Model implements TableInterface
         'price' => 'float',
         'quantity' => 'float',
         'amount' => 'float',
+        'period_id' => 'integer',
+        'plan_id' => 'integer',
+
     ];
     /**
      * __construct
