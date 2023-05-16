@@ -20,6 +20,7 @@ class PaymentResource extends JsonResource
             'comment'=>$this->comment,
             'amount'=>$this->amount,
             'kid_id'=>$this->kid_id,
+            'kid_fio'=>$this->kid_fio,
             'period_id'=>$this->period_id,
         ];
     }

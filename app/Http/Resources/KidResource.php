@@ -16,7 +16,7 @@ class KidResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'fio' => "$this->last_name $this->name $this->patronymic",
+            'fio' => $this->fio,
             'last_name' => $this->last_name,
             'name' => $this->name,
             'patronymic' => $this->patronymic,
@@ -24,6 +24,7 @@ class KidResource extends JsonResource
             'start_study' => $this->start_study,
             'end_study' => $this->end_study,
             'organization_id' => $this->organization_id,
+            'is_out' => $this->is_out
         ];
     }
 

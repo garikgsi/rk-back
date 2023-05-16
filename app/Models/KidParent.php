@@ -40,6 +40,13 @@ class KidParent extends Model implements TableInterface
         ],
     ];
 
+    protected $casts = [
+        'is_admin' => 'boolean',
+        'kid_id' => 'integer',
+        'user_id' => 'integer'
+    ];
+
+
     /**
      * __construct
      *

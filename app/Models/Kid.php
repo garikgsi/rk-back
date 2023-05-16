@@ -10,7 +10,10 @@ use App\Facades\TableModel;
 use App\Traits\TableFilterTrait;
 use App\Traits\TableOrderLimitsTrait;
 use App\Traits\TableTrait;
+use Carbon\Carbon;
+// use Attribute;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 
 class Kid extends Model implements TableInterface
@@ -37,6 +40,14 @@ class Kid extends Model implements TableInterface
         ],
         'messages' => [],
     ];
+
+
+    protected $casts = [
+        'id' => 'integer',
+        'organization_id' => 'integer',
+        'is_out' => 'boolean'
+    ];
+
 
     /**
      * __construct
@@ -87,6 +98,24 @@ class Kid extends Model implements TableInterface
      */
     public function payments() {
         return $this->hasMany(Payment::class);
+    }
+
+    // attributes
+    /**
+     * kid is out from class prop
+     */
+    protected function isOut():Attribute {
+        return new Attribute(
+            get: fn ($value, $attributes)=>
+                $attributes['end_study']!==NULL ? $attributes['end_study']<Carbon::now() : false
+        );
+    }
+
+    // fio attribute
+    protected function fio():Attribute {
+        return new Attribute(
+            get: fn()=>"$this->last_name $this->name $this->patronymic"
+        );
     }
 
 

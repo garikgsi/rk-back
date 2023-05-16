@@ -10,7 +10,7 @@ use App\Facades\TableModel;
 use App\Traits\TableFilterTrait;
 use App\Traits\TableOrderLimitsTrait;
 use App\Traits\TableTrait;
-
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Payment extends Model implements TableInterface
 {
@@ -80,4 +80,15 @@ class Payment extends Model implements TableInterface
         return $this->belongsTo(Period::class);
     }
 
+    /**
+     * kid fio attribute
+     */
+    protected function kidFio():Attribute {
+        return new Attribute(
+            get: function() {
+                $kid = Kid::withTrashed()->find($this->kid_id);
+                return $kid ? $kid->fio : '';
+            }
+        );
+    }
 }

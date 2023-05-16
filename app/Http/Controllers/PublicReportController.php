@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Resources\OperationReportResource;
-use App\Http\Resources\PeriodReportResource;
 use App\Http\Resources\PlanReportResource;
 use App\Http\Resources\OrganizationReportResource;
 use App\Models\Organization;
 use App\Exceptions\TableException;
+use App\Http\Resources\PeriodResource;
 
 class PublicReportController extends Controller
 {
@@ -67,10 +67,10 @@ class PublicReportController extends Controller
                 return response()->formatApi([
                     'data' => [
                         'organization' => new OrganizationReportResource($organization),
-                        'current_period' => new PeriodReportResource($period),
+                        'current_period' => new PeriodResource($period),
                         'operations' => OperationReportResource::collection($operations),
                         'plans'=> PlanReportResource::collection($periodPlans),
-                        'periods' => PeriodReportResource::collection($organizationPeriods),
+                        'periods' => PeriodResource::collection($organizationPeriods),
                         'totals' => [
                             'operations' => round($sumOperations,2),
                             'plans' => round($sumPlans,2),

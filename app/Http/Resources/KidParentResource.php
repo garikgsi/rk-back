@@ -19,6 +19,7 @@ class KidParentResource extends JsonResource
             'fio' => "$this->last_name $this->name $this->patronymic",
             'last_name' => $this->last_name,
             'name' => $this->name,
+            'patronymic' => $this->patronymic,
             'phone' => $this->phone,
             'kid_id' => $this->kid_id,
             'user_id' => $this->user_id,
