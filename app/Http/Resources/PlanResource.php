@@ -22,7 +22,10 @@ class PlanResource extends JsonResource
             'quantity'=>$this->quantity,
             'amount'=>$this->amount,
             'period_id'=>$this->period_id,
-            'created_at'=>$this->created_at->format('Y-m-d')
+            'created_at'=>$this->created_at->format('Y-m-d'),
+            'start_bill_date' => $this->start_bill_date,
+            'kid_id' => $this->kid_id,
+            'kid_fio'=>$this->kid_fio,
         ];
     }
 }

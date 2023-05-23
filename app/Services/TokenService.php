@@ -74,7 +74,6 @@ class TokenService
             throw new TokenException($formattedError, 422);
         } else {
             $userData = $validator->validated();
-            // dd($userData);
             $user = User::where('email', $userData["email"])->first();
             if ($user) {
                 if (Auth::attempt(['email'=>$userData["email"], 'password'=>$userData["password"]])) {

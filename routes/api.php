@@ -17,6 +17,7 @@ use App\Http\Controllers\OperationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PlanController;
 use App\Http\Middleware\DenyDemoUser;
+use App\Http\Controllers\DebtReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -82,6 +83,8 @@ Route::prefix('v1')
             Route::get('/operations/{id}',[OperationController::class,'show']);
             Route::get('/plans',[PlanController::class,'index']);
             Route::get('/plans/{id}',[PlanController::class,'show']);
+            Route::get('/debt/{period_id}', [DebtReportController::class, 'getDebtReport']);
+            Route::get('/debt/{period_id}/{kid_id}', [DebtReportController::class, 'getDebtKidReport']);
         });
 
         /**

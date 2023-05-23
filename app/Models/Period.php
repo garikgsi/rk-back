@@ -103,4 +103,27 @@ class Period extends Model implements TableInterface
         }
         return false;
     }
+
+    /**
+     * return kids for this period
+     * @return kids
+     */
+
+    public function kids() {
+        return $this->organization->kids()
+            ->where(function($query) {
+                $query->where(function ($query) {
+                    $query->whereNull('start_study')->whereNull('end_study');
+                })->orWhere(function ($query) {
+                    $query->where(function ($query) {
+                        $query->whereNotNull('start_study')->whereBetween('start_study', [$this->start_date, $this->end_date]);
+                    });
+                })->orWhere(function ($query) {
+                    $query->where(function ($query) {
+                        $query->whereNotNull('end_study')->whereBetween('end_study', [$this->start_date, $this->end_date]);
+                    });
+                });
+            });
+    }
+
 }
