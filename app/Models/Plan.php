@@ -47,7 +47,7 @@ class Plan extends Model implements TableInterface
     /**
      * __construct
      *
-     * @param  array $attributes
+     * @param array $attributes
      * @return void
      */
     public function __construct(array $attributes = [])
@@ -68,12 +68,14 @@ class Plan extends Model implements TableInterface
     }
 
     // relations
+
     /**
      * plan period
      *
      * @return void
      */
-    public function period() {
+    public function period()
+    {
         return $this->belongsTo(Period::class);
     }
 
@@ -83,24 +85,28 @@ class Plan extends Model implements TableInterface
      * @return void
      */
 
-    public function operations() {
+    public function operations()
+    {
         return $this->hasMany(Operation::class);
     }
+
     /**
      * plan for kid
      *
      * @return void
      */
-    public function kid() {
+    public function kid()
+    {
         return $this->belongsTo(Kid::class);
     }
 
     /**
      * kid fio attribute
      */
-    protected function kidFio():Attribute {
+    protected function kidFio(): Attribute
+    {
         return new Attribute(
-            get: function() {
+            get: function () {
                 $kid = Kid::withTrashed()->find($this->kid_id);
                 return $kid ? $kid->fio : '';
             }
@@ -110,23 +116,23 @@ class Plan extends Model implements TableInterface
     /**
      * kids studied in period
      * */
-    public function kids() {
+    public function kids()
+    {
         return $this->period->kids()
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->where(function ($query) {
                     $query->whereNull('start_study')->whereNull('end_study');
                 })->orWhere(function ($query) {
                     $query->where(function ($query) {
-                        $query->whereNotNull('start_study')->whereDate('start_study','<=',$this->start_bill_date)->whereDate('start_study', '<=', $this->period->end_date);
+                        $query->whereNotNull('start_study')->whereDate('start_study', '<=', $this->start_bill_date)->whereDate('start_study', '<=', $this->period->end_date);
                     });
                 })
                     ->orWhere(function ($query) {
-                    $query->where(function ($query) {
-                        $query->whereNotNull('end_study')->whereDate('end_study','>=',$this->start_bill_date)->whereDate('end_study', '<=', $this->period->end_date);
+                        $query->where(function ($query) {
+                            $query->whereNotNull('end_study')->whereDate('end_study', '>=', $this->start_bill_date)->whereDate('end_study', '<=', $this->period->end_date);
+                        });
                     });
-                });
-            })
-//            ->dd()
+            })//            ->dd()
             ;
     }
 }
